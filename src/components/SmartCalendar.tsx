@@ -76,7 +76,7 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
       dayNameEn: dayNamesEn[d.getDay()],
       num: d.getDate(),
       monthAr: d.toLocaleDateString('ar-EG', { month: 'short' }),
-      isToday: dateStr === '2026-08-31'
+      isToday: dateStr === currentDate
     };
   });
 
@@ -281,10 +281,20 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
               <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
             </div>
             <div className="grid grid-cols-7 text-center text-xs font-mono gap-1 text-slate-700 dark:text-slate-300">
-              <span className="text-slate-400">26</span><span className="text-slate-400">27</span><span className="text-slate-400">28</span><span className="text-slate-400">29</span>
-              <span>30</span>
-              <span className="w-6 h-6 rounded-full bg-[#00cb87] text-slate-950 font-bold mx-auto flex items-center justify-center shadow">31</span>
-              <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
+              {daysList.map(d => (
+                <button
+                  key={d.dateStr}
+                  type="button"
+                  onClick={() => setCurrentDate(d.dateStr)}
+                  className={`w-6 h-6 flex items-center justify-center rounded-full transition hover:bg-[#ece7de] dark:hover:bg-white/10 ${
+                    d.isToday 
+                      ? 'bg-[#00cb87] text-slate-950 font-bold shadow' 
+                      : 'text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  {d.num}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -337,12 +347,17 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
               <div className="grid grid-cols-8 border-b border-[#e3ded5] dark:border-white/10 pb-3 text-center text-xs font-bold">
                 <div className="text-slate-400 font-mono">GMT+03</div>
                 {weekDays.map(d => (
-                  <div key={d.dateStr} className={`space-y-1 ${d.isToday ? 'text-[#00473e] dark:text-[#00cb87]' : 'text-slate-600 dark:text-slate-300'}`}>
+                  <button 
+                    type="button"
+                    onClick={() => setCurrentDate(d.dateStr)}
+                    key={d.dateStr} 
+                    className={`space-y-1 transition hover:opacity-70 ${d.isToday ? 'text-[#00473e] dark:text-[#00cb87]' : 'text-slate-600 dark:text-slate-300'}`}
+                  >
                     <div className="uppercase font-mono text-[11px]">{lang === 'ar' ? d.dayNameAr : d.dayNameEn}</div>
-                    <div className={`w-8 h-8 rounded-full mx-auto flex items-center justify-center font-mono font-black text-sm ${d.isToday ? 'bg-[#00cb87] text-slate-950 shadow-md' : ''}`}>
+                    <div className={`w-8 h-8 rounded-full mx-auto flex items-center justify-center font-mono font-black text-sm transition ${d.isToday ? 'bg-[#00cb87] text-slate-950 shadow-md' : 'hover:bg-slate-200 dark:hover:bg-slate-800'}`}>
                       {d.num}
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
 
