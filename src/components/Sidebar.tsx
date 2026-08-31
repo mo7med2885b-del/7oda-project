@@ -18,7 +18,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onOpe
     { id: 'calendar' as NavTab, label: t('nav_calendar'), icon: Calendar, badge: 'Schedule' },
     { id: 'patients' as NavTab, label: t('nav_patients'), icon: Users, badge: '16' },
     { id: 'financials' as NavTab, label: t('nav_financials'), icon: Landmark, badge: 'Ledger' },
-    { id: 'doctor_profile' as NavTab, label: t('nav_doctor_profile'), icon: Stethoscope, badge: 'Profile' },
     { id: 'audit' as NavTab, label: t('nav_audit'), icon: ShieldCheck, badge: 'RLS' }
   ];
 
@@ -94,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onOpe
 
       {/* Mobile Bottom Responsive Navigation Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#001c15] border-t border-[#00cb87]/30 text-white px-2 py-2 flex items-center justify-around shadow-2xl">
-        {navItems.slice(0, 5).map(item => {
+        {navItems.map(item => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
