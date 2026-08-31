@@ -62,19 +62,23 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [discountReason, setDiscountReason] = useState<string>('');
 
-  // Slot Picker Pop-out State
-  const [showSlotPicker, setShowSlotPicker] = useState<boolean>(true);
+  // Extended 14-Day Selector Generation (From Aug 30 onwards)
+  const daysList = Array.from({ length: 14 }).map((_, idx) => {
+    const d = new Date(2026, 7, 30 + idx); // Aug 30 2026
+    const dateStr = d.toISOString().split('T')[0];
+    const dayNamesAr = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const dayNamesEn = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    return {
+      dateStr,
+      dayNameAr: dayNamesAr[d.getDay()],
+      dayNameEn: dayNamesEn[d.getDay()],
+      num: d.getDate(),
+      monthAr: d.toLocaleDateString('ar-EG', { month: 'short' }),
+      isToday: dateStr === '2026-08-31'
+    };
+  });
 
-  // Week Days Generation (Aug 30 - Sep 5, 2026)
-  const weekDays = [
-    { dayNameAr: 'الأحد', dayNameEn: 'SUN', dateStr: '2026-08-30', num: 30 },
-    { dayNameAr: 'الإثنين', dayNameEn: 'MON', dateStr: '2026-08-31', num: 31, isToday: true },
-    { dayNameAr: 'الثلاثاء', dayNameEn: 'TUE', dateStr: '2026-09-01', num: 1 },
-    { dayNameAr: 'الأربعاء', dayNameEn: 'WED', dateStr: '2026-09-02', num: 2 },
-    { dayNameAr: 'الخميس', dayNameEn: 'THU', dateStr: '2026-09-03', num: 3 },
-    { dayNameAr: 'الجمعة', dayNameEn: 'FRI', dateStr: '2026-09-04', num: 4 },
-    { dayNameAr: 'السبت', dayNameEn: 'SAT', dateStr: '2026-09-05', num: 5 }
-  ];
+  const weekDays = daysList.slice(0, 7);
 
   const timeSlots = [
     '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -129,8 +133,13 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
     const branchObj = doctorInfo.branches.find(b => b.id === selectedBranch);
     const branchName = branchObj ? (lang === 'ar' ? branchObj.city_ar : branchObj.city_en) : '';
 
+    if (discountAmount > 0 && !discountReason.trim()) {
+      alert(lang === 'ar' ? 'يرجى إدخال سبب الخصم (سبب الخصم إجباري عند وجود قيمة خصم).' : 'Please enter the discount reason (mandatory when discount is specified).');
+      return;
+    }
+
     const discountInfoStr = discountAmount > 0 
-      ? ` [خصم: ${discountAmount} ج.م - ${discountReason || 'بدون سبب مذكور'}]` 
+      ? ` [خصم: ${discountAmount} ج.م - ${discountReason}]` 
       : '';
 
     const fullReasonStr = `${visitReason || (lang === 'ar' ? 'كشف عيادة' : 'Consultation')} [${visitType} - ${branchName}] - الرسوم: ${netPayable} ج.م${discountInfoStr}`;
@@ -397,7 +406,7 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
         </div>
       </div>
 
-      {/* NEW APPOINTMENT MODAL (WITH INTERACTIVE VISUAL SLOT PICKER: GREEN AVAILABLE / RED BOOKED) */}
+      {/* NEW APPOINTMENT MODAL (HARMONIOUS MEDICAL EMERALD COLOR PALETTE & UNLIMITED DATE PICKER) */}
       {showBookingModal && (
         <div className="fixed inset-0 z-50 bg-[#001c15]/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
           <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/40 shadow-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
@@ -527,50 +536,64 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                 </div>
               )}
 
-              {/* INTERACTIVE POP-OUT / INLINE CALENDAR & TIME SLOT PICKER (GREEN = AVAILABLE / RED = BOOKED) */}
-              <div className="p-3.5 rounded-xl bg-[#001c15] border border-[#00cb87]/40 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs font-black text-[#00cb87]">
-                    <CalendarIcon className="w-4 h-4 text-[#00cb87]" />
-                    <span>خريطة اختيار التاريخ والأوقات المتاحة</span>
+              {/* HARMONIOUS EMERALD TIME SLOT PICKER WITH UNLIMITED DATE SELECTION */}
+              <div className="p-4 rounded-2xl bg-[#00473e]/5 dark:bg-[#001c15] border border-[#00473e]/20 dark:border-[#00cb87]/30 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#00473e]/10 dark:border-white/10 pb-2.5">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-[#00473e] dark:text-[#00cb87]">
+                    <CalendarIcon className="w-4 h-4 text-[#00473e] dark:text-[#00cb87]" />
+                    <span>خريطة وحالة المواعيد المتاحة (Slot Status)</span>
                   </div>
-                  <div className="flex items-center gap-3 text-[10px] font-bold">
-                    <span className="flex items-center gap-1 text-emerald-400">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> متاح (Green)
+
+                  <div className="flex items-center gap-3 text-[11px] font-bold">
+                    <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-300">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> متاح
                     </span>
-                    <span className="flex items-center gap-1 text-rose-400">
-                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> حجز سابق (Red)
+                    <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
+                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> حجز سابق
                     </span>
                   </div>
                 </div>
 
-                {/* Day Buttons Selector */}
-                <div className="space-y-1">
-                  <label className="block text-[11px] text-slate-300 font-bold">اختر تاريخ اليوم:</label>
-                  <div className="grid grid-cols-7 gap-1 text-center">
-                    {weekDays.map(d => (
+                {/* Unlimited Custom Date Picker & Quick Days Scroll */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="block text-xs text-[#122620] dark:text-white font-extrabold">
+                      اختر تاريخ الكشف (أو اختر أي يوم في السنة):
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={aptDate}
+                      onChange={e => setAptDate(e.target.value)}
+                      className="p-1.5 rounded-xl bg-white dark:bg-[#00261c] border border-[#00473e]/30 dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-mono font-bold text-xs shadow-sm"
+                    />
+                  </div>
+
+                  {/* Horizontal Scrollable Days Chips */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-thin">
+                    {daysList.map(d => (
                       <button
                         key={d.dateStr}
                         type="button"
                         onClick={() => setAptDate(d.dateStr)}
-                        className={`p-1.5 rounded-xl border text-[10px] font-mono font-bold transition ${
+                        className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition shrink-0 flex items-center gap-1.5 ${
                           aptDate === d.dateStr
-                            ? 'bg-[#00cb87] text-slate-950 border-[#00cb87] shadow-md scale-105'
-                            : 'bg-[#00261c] text-slate-300 border-white/10 hover:border-[#00cb87]/40'
+                            ? 'bg-[#00473e] text-white border-[#00473e] shadow-md dark:bg-[#00cb87] dark:text-slate-950'
+                            : 'bg-white dark:bg-[#00261c] text-slate-700 dark:text-slate-200 border-[#e3ded5] dark:border-white/10 hover:border-[#00cb87]'
                         }`}
                       >
-                        <div className="text-[9px] uppercase">{d.dayNameAr}</div>
-                        <div className="text-xs font-black">{d.num}</div>
+                        <span>{d.dayNameAr}</span>
+                        <span className="font-mono text-xs">{d.num}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 {/* Visual Time Slot Grid */}
-                <div className="space-y-1 pt-2 border-t border-white/10">
-                  <div className="flex items-center justify-between text-[11px] text-slate-300 font-bold">
-                    <span>اختر الوقت المحدد لليوم ({aptDate}):</span>
-                    <span className="text-[#00cb87] font-mono">المحدد: {startTime}</span>
+                <div className="space-y-1.5 pt-2 border-t border-[#00473e]/10 dark:border-white/10">
+                  <div className="flex items-center justify-between text-[11px] text-[#122620] dark:text-white font-bold">
+                    <span>التوقيتات المتاحة ليوم (<span className="font-mono text-[#00473e] dark:text-[#00cb87]">{aptDate}</span>):</span>
+                    <span className="text-[#00473e] dark:text-[#00cb87] font-mono">المحدد: {startTime}</span>
                   </div>
 
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
@@ -592,17 +615,17 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                           }}
                           className={`p-2 rounded-xl border text-[11px] font-mono font-bold transition flex items-center justify-between ${
                             booked
-                              ? 'bg-rose-500/15 border-rose-500/40 text-rose-400 cursor-not-allowed opacity-80'
+                              ? 'bg-rose-500/10 border-rose-400/30 text-rose-600 dark:text-rose-400 cursor-not-allowed opacity-75'
                               : isSelected
-                              ? 'bg-[#00cb87] text-slate-950 border-[#00cb87] shadow-lg scale-105'
-                              : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-[#00cb87] hover:text-slate-950'
+                              ? 'bg-[#00473e] text-white border-[#00473e] shadow-lg dark:bg-[#00cb87] dark:text-slate-950 scale-105'
+                              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 hover:bg-[#00473e] hover:text-white'
                           }`}
                         >
                           <span>{slot}</span>
                           {booked ? (
                             <span className="text-[9px] font-black bg-rose-500 text-white px-1 rounded">مشغول</span>
                           ) : (
-                            <span className="text-[9px] font-black bg-emerald-500 text-slate-950 px-1 rounded">متاح</span>
+                            <span className="text-[9px] font-black bg-emerald-600 text-white px-1 rounded">متاح</span>
                           )}
                         </button>
                       );
@@ -691,13 +714,17 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
 
                 {discountAmount > 0 && (
                   <div>
-                    <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">سبب الخصم (Discount Reason)</label>
+                    <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1 flex items-center justify-between">
+                      <span>سبب الخصم (Discount Reason) *</span>
+                      <span className="text-rose-500 text-[10px] font-black animate-pulse">مطلوب إجبارياً *</span>
+                    </label>
                     <input
                       type="text"
+                      required
                       value={discountReason}
                       onChange={e => setDiscountReason(e.target.value)}
-                      placeholder="مثال: خصم نقابة الأطباء، متابعة مجانية، حالة إنسانية..."
-                      className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white"
+                      placeholder="مثال: خصم نقابة الأطباء، حالة إنسانية، متابعة مجانية..."
+                      className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border-2 border-rose-500/50 text-[#122620] dark:text-white font-bold focus:ring-2 focus:ring-rose-500"
                     />
                   </div>
                 )}

@@ -46,7 +46,11 @@ export const Header: React.FC = () => {
         <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2 flex-wrap pt-1 sm:pt-0 border-t border-slate-200/60 sm:border-0 dark:border-white/5">
           {/* Portal Switcher Button */}
           <button
-            onClick={() => setPortalMode(portalMode === 'admin' ? 'patient' : 'admin')}
+            onClick={() => {
+              const newMode = portalMode === 'admin' ? 'patient' : 'admin';
+              setPortalMode(newMode);
+              window.location.hash = newMode === 'patient' ? '#patient' : '#dashboard';
+            }}
             className={`px-3 py-1.5 rounded-xl font-bold text-[11px] sm:text-xs flex items-center gap-1.5 transition shadow-sm shrink-0 ${
               portalMode === 'admin'
                 ? 'bg-[#00473e] text-white hover:bg-[#003831]'

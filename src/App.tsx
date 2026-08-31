@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ClinicProvider, useClinic } from './context/ClinicContext';
 import { Header } from './components/Header';
 import { Sidebar, NavTab } from './components/Sidebar';
@@ -22,9 +22,55 @@ const ClinicAppContent: React.FC = () => {
   const { portalMode, setPortalMode } = useClinic();
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
 
+  // URL Hash Syncing: Sync URL Hash with active portal & section tab
+  useEffect(() => {
+    const syncStateFromHash = () => {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (hash === 'patient' || hash === 'patients-portal') {
+        setPortalMode('patient');
+      } else if (hash === 'calendar') {
+        setPortalMode('admin');
+        setActiveTab('calendar');
+      } else if (hash === 'patients') {
+        setPortalMode('admin');
+        setActiveTab('patients');
+      } else if (hash === 'financials' || hash === 'finance') {
+        setPortalMode('admin');
+        setActiveTab('financials');
+      } else if (hash === 'audit') {
+        setPortalMode('admin');
+        setActiveTab('audit');
+      } else if (hash === 'dashboard' || hash === 'admin') {
+        setPortalMode('admin');
+        setActiveTab('dashboard');
+      } else if (hash === 'doctor_profile') {
+        setPortalMode('admin');
+        setActiveTab('doctor_profile');
+      }
+    };
+
+    syncStateFromHash();
+    window.addEventListener('hashchange', syncStateFromHash);
+    return () => window.removeEventListener('hashchange', syncStateFromHash);
+  }, [setPortalMode]);
+
+  // Sync URL hash dynamically whenever portalMode or activeTab changes
+  useEffect(() => {
+    if (portalMode === 'patient') {
+      if (window.location.hash !== '#patient') {
+        window.history.replaceState(null, '', '#patient');
+      }
+    } else {
+      const targetHash = `#${activeTab}`;
+      if (window.location.hash !== targetHash) {
+        window.history.replaceState(null, '', targetHash);
+      }
+    }
+  }, [portalMode, activeTab]);
+
   // Modals state
   const [showPortalSelectorModal, setShowPortalSelectorModal] = useState<boolean>(() => {
-    return !localStorage.getItem('clinic_portal_mode');
+    return !localStorage.getItem('clinic_portal_mode') && !window.location.hash;
   });
 
   const [dossierPatientId, setDossierPatientId] = useState<string | null>(null);
@@ -50,6 +96,11 @@ const ClinicAppContent: React.FC = () => {
   const handleSelectPortalMode = (mode: 'admin' | 'patient') => {
     setPortalMode(mode);
     setShowPortalSelectorModal(false);
+    if (mode === 'patient') {
+      window.location.hash = '#patient';
+    } else {
+      window.location.hash = `#${activeTab}`;
+    }
   };
 
   return (
@@ -67,7 +118,10 @@ const ClinicAppContent: React.FC = () => {
         {portalMode === 'admin' && (
           <Sidebar
             activeTab={activeTab}
-            setActiveTab={setActiveTab}
+            setActiveTab={tab => {
+              setActiveTab(tab);
+              window.location.hash = `#${tab}`;
+            }}
             onOpenAiFinancialAdvisor={() => setShowAiAdvisorModal(true)}
           />
         )}
@@ -79,7 +133,10 @@ const ClinicAppContent: React.FC = () => {
             <>
               {activeTab === 'dashboard' && (
                 <ExecutiveDashboard
-                  onOpenNewAppointment={() => setActiveTab('calendar')}
+                  onOpenNewAppointment={() => {
+                    setActiveTab('calendar');
+                    window.location.hash = '#calendar';
+                  }}
                   onOpenNewInvoice={() => setShowInvoiceModal(true)}
                   onOpenNewExpense={() => setShowExpenseModal(true)}
                   onOpenSoapNote={(patientId, appointmentId) => setSoapModalData({ patientId, appointmentId })}
@@ -108,7 +165,10 @@ const ClinicAppContent: React.FC = () => {
 
               {activeTab === 'calendar' && (
                 <SmartCalendar
-                  onOpenNewAppointment={() => setActiveTab('calendar')}
+                  onOpenNewAppointment={() => {
+                    setActiveTab('calendar');
+                    window.location.hash = '#calendar';
+                  }}
                   onOpenTriageModal={patientId => setTriagePatientId(patientId)}
                 />
               )}
