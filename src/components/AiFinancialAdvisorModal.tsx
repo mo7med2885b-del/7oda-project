@@ -25,7 +25,7 @@ export const AiFinancialAdvisorModal: React.FC<AiFinancialAdvisorModalProps> = (
         {/* Header */}
         <div className="p-4 sm:p-6 bg-[#001c15] text-white flex items-center justify-between border-b border-[#00cb87]/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#00cb87] flex items-center justify-center text-slate-950 shadow-lg">
+            <div className="w-10 h-10 rounded-xl bg-[#00cb87] flex items-center justify-center text-slate-950 shadow-lg shrink-0">
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
@@ -40,54 +40,62 @@ export const AiFinancialAdvisorModal: React.FC<AiFinancialAdvisorModalProps> = (
           </button>
         </div>
 
-        {/* Content */}
+        {/* Content Body */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 text-xs">
           {/* Executive Overview Box */}
-          <div className="p-4 rounded-2xl bg-[#001c15] border border-[#00cb87]/40 space-y-2 text-white shadow-md">
-            <div className="text-[10px] font-bold text-[#00cb87] uppercase tracking-wider">
-              Cash Flow Executive Summary
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#001c15] border border-[#00cb87]/40 text-white shadow-md space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold text-[#00cb87] uppercase tracking-wider">
+                Cash Flow Executive Summary
+              </span>
             </div>
-            <div className="text-sm font-bold text-white leading-relaxed font-mono" dir="ltr">
+            <div className="text-sm sm:text-base font-bold text-white leading-relaxed font-mono pt-1" dir="ltr">
               {insights.cash_flow_summary}
             </div>
           </div>
 
           {/* Warnings & Leakage */}
-          <div className="space-y-2">
-            <h4 className="font-extrabold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 text-xs">
-              <AlertTriangle className="w-4 h-4 text-amber-600" />
-              <span>Expense Leakage & Collection Risks</span>
-            </h4>
+          {insights.leakage_warnings.length > 0 && (
             <div className="space-y-2">
-              {insights.leakage_warnings.map((w, idx) => (
-                <div key={idx} className="p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-950 dark:text-amber-200 font-bold leading-relaxed">
-                  {w}
-                </div>
-              ))}
+              <div className="flex items-center justify-between">
+                <h4 className="font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1.5 text-xs">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Expense Leakage & Collection Risks</span>
+                </h4>
+              </div>
+              <div className="space-y-2">
+                {insights.leakage_warnings.map((w, idx) => (
+                  <div key={idx} className="p-4 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-950 dark:text-amber-200 font-bold leading-relaxed shadow-sm" dir="ltr">
+                    {w}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Revenue Projections (High Contrast Crisp Emerald Card) */}
-          <div className="p-4.5 rounded-2xl bg-[#00473e] text-white border border-[#00cb87]/50 shadow-md space-y-2">
-            <h4 className="font-extrabold text-[#00cb87] flex items-center gap-1.5 text-xs">
-              <TrendingUp className="w-4 h-4 text-[#00cb87]" />
-              <span>Revenue Forecast (Next Month)</span>
-            </h4>
-            <p className="text-white font-bold text-xs leading-relaxed" dir="ltr">
+          {/* Revenue Projections Card */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#001c15] text-white border border-[#00cb87]/40 shadow-md space-y-3">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <h4 className="font-extrabold text-[#00cb87] flex items-center gap-1.5 text-xs">
+                <TrendingUp className="w-4 h-4 text-[#00cb87] shrink-0" />
+                <span>Revenue Forecast (Next Month)</span>
+              </h4>
+            </div>
+            <p className="text-white font-bold text-xs sm:text-sm leading-relaxed" dir="ltr">
               {insights.revenue_projections}
             </p>
           </div>
 
           {/* Growth Action Plan */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h4 className="font-extrabold text-[#122620] dark:text-white text-xs">
               Recommended Financial Optimization Steps
             </h4>
             <div className="space-y-2">
               {insights.growth_recommendations.map((rec, i) => (
-                <div key={i} className="p-3.5 rounded-xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/20 flex items-start gap-2.5 shadow-sm" dir="ltr">
-                  <CheckCircle className="w-4.5 h-4.5 text-[#00cb87] shrink-0 mt-0.5" />
-                  <span className="dark:text-slate-100 text-[#122620] font-bold text-xs leading-relaxed">{rec}</span>
+                <div key={i} className="p-4 rounded-2xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/30 flex items-start gap-3 shadow-sm" dir="ltr">
+                  <CheckCircle className="w-5 h-5 text-[#00cb87] shrink-0 mt-0.5" />
+                  <span className="dark:text-slate-100 text-[#122620] font-bold text-xs sm:text-sm leading-relaxed">{rec}</span>
                 </div>
               ))}
             </div>
@@ -99,7 +107,7 @@ export const AiFinancialAdvisorModal: React.FC<AiFinancialAdvisorModalProps> = (
           {onOpenAiPrompt && (
             <button
               onClick={handleAskAiDrawer}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow-lg transition flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow-lg transition flex items-center justify-center gap-2"
             >
               <Sparkles className="w-4 h-4" />
               <span>متابعة التحليل بالتفصيل في الشات</span>
