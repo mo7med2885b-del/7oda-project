@@ -64,10 +64,16 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [discountReason, setDiscountReason] = useState<string>('');
 
-  // Extended 14-Day Selector Generation (From Aug 30 onwards)
+  // Dynamic 14-Day Selector Generation (Starts from Sunday of the current week)
+  const [y, m, dayNum] = currentDate.split('-').map(Number);
+  const currD = new Date(y, m - 1, dayNum); 
+  const dayOfWeek = currD.getDay(); // 0 is Sunday
+  const startD = new Date(y, m - 1, dayNum - dayOfWeek);
+
   const daysList = Array.from({ length: 14 }).map((_, idx) => {
-    const d = new Date(2026, 7, 30 + idx); // Aug 30 2026
-    const dateStr = d.toISOString().split('T')[0];
+    const d = new Date(startD.getFullYear(), startD.getMonth(), startD.getDate() + idx);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    
     const dayNamesAr = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
     const dayNamesEn = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     return {
