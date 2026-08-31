@@ -86,9 +86,9 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
   return (
     <div className="space-y-6">
       {/* Top Header Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm">
         <div>
-          <h2 className="text-2xl font-black tracking-tight dark:text-white text-[#122620] flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight dark:text-white text-[#122620] flex items-center gap-2">
             <Users className="w-6 h-6 text-[#00473e] dark:text-[#00cb87]" />
             {t('patient_registry_title')}
           </h2>
@@ -99,7 +99,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow-md transition flex items-center gap-2"
+          className="px-4 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow-md transition flex items-center justify-center gap-2"
         >
           <UserPlus className="w-4 h-4 text-slate-950" />
           <span>{t('register_patient')}</span>
@@ -107,8 +107,8 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
       </div>
 
       {/* Filter & Search Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div className="md:col-span-2 relative">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="sm:col-span-2 relative">
           <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
@@ -150,18 +150,18 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
       </div>
 
       {/* Patient Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredPatients.map(patient => (
           <div
             key={patient.id}
-            className="p-5 rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm hover:shadow-md transition space-y-3"
+            className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm hover:shadow-md transition space-y-3"
           >
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-extrabold text-sm text-[#122620] dark:text-white">{patient.full_name}</h3>
-                <div className="text-[11px] text-slate-500 font-mono">الرقم القومي: {patient.national_id}</div>
+                <div className="text-[11px] text-slate-500 font-mono" dir="ltr">ID: {patient.national_id}</div>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-rose-500/10 text-rose-600 border border-rose-500/30">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-300 border border-rose-500/30">
                 {patient.blood_type}
               </span>
             </div>
@@ -171,18 +171,18 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                 <span className="font-bold text-[#122620] dark:text-white">{patient.age} سنة ({patient.gender === 'Female' ? 'أنثى' : 'ذكر'})</span>
                 <span className="text-slate-300">|</span>
                 <Phone className="w-3.5 h-3.5 text-slate-400 inline" />
-                <span className="font-mono">{patient.phone}</span>
+                <span className="font-mono" dir="ltr">{patient.phone}</span>
               </div>
 
               {patient.medical_alerts && (
-                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-bold text-[11px] flex items-start gap-1.5">
+                <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-950 dark:text-amber-200 font-bold text-[11px] flex items-start gap-1.5">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
                   <span>{patient.medical_alerts}</span>
                 </div>
               )}
 
               {patient.allergies && patient.allergies !== 'None' && (
-                <div className="text-[11px] text-rose-600 dark:text-rose-400">
+                <div className="text-[11px] text-rose-600 dark:text-rose-300 font-bold">
                   <strong>حساسية أدوية:</strong> {patient.allergies}
                 </div>
               )}
@@ -233,21 +233,21 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
 
       {/* Add New Patient Modal Dialog */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-[#001c15]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/40 shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-[#001c15]/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/40 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#e3ded5] dark:border-white/10 pb-3">
-              <h3 className="text-lg font-black text-[#122620] dark:text-white flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-black text-[#122620] dark:text-white flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-[#00cb87]" />
                 {t('register_patient')}
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-white p-1">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleAddPatientSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-600 dark:text-slate-300 font-bold mb-1">اسم المريضة بالكامل *</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">اسم المريضة بالكامل *</label>
                 <input
                   type="text"
                   required
@@ -258,9 +258,9 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-600 dark:text-slate-300 font-bold mb-1">رقم التليفون *</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">رقم التليفون *</label>
                   <input
                     type="text"
                     required
@@ -268,10 +268,11 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                     onChange={e => setPhone(e.target.value)}
                     placeholder="010xxxxxxxx"
                     className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-mono focus:ring-2 focus:ring-[#00cb87]"
+                    dir="ltr"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-600 dark:text-slate-300 font-bold mb-1">الرقم القومي (14 رقم) *</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">الرقم القومي (14 رقم) *</label>
                   <input
                     type="text"
                     required
@@ -279,13 +280,14 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                     onChange={e => setNationalId(e.target.value)}
                     placeholder="293xxxxxxxxxxx"
                     className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-mono focus:ring-2 focus:ring-[#00cb87]"
+                    dir="ltr"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-slate-600 dark:text-slate-300 font-bold mb-1">العمر</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">العمر</label>
                   <input
                     type="number"
                     value={age}
@@ -294,7 +296,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-600 dark:text-slate-300 font-bold mb-1">فصيلة الدم</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">فصيلة الدم</label>
                   <select
                     value={bloodType}
                     onChange={e => setBloodType(e.target.value)}
@@ -311,7 +313,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-600 dark:text-slate-300 font-bold mb-1">الفرع المفضل</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">الفرع المفضل</label>
                   <select
                     value={preferredBranch}
                     onChange={e => setPreferredBranch(e.target.value)}
@@ -327,7 +329,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
               </div>
 
               <div>
-                <label className="block text-slate-600 dark:text-slate-300 font-bold mb-1">التشخيص الحالي / التنبيهات الطبية</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">التشخيص الحالي / التنبيهات الطبية</label>
                 <input
                   type="text"
                   value={medicalAlerts}
@@ -338,7 +340,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
               </div>
 
               <div>
-                <label className="block text-slate-600 dark:text-slate-300 font-bold mb-1">حساسية الأدوية (Allergies)</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">حساسية الأدوية (Allergies)</label>
                 <input
                   type="text"
                   value={allergies}
@@ -349,7 +351,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
               </div>
 
               <div>
-                <label className="block text-slate-600 dark:text-slate-300 font-bold mb-1">بيانات الطوارئ والزوج</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">بيانات الطوارئ والزوج</label>
                 <input
                   type="text"
                   value={emergencyContact}

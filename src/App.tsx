@@ -54,7 +54,7 @@ const ClinicAppContent: React.FC = () => {
 
   return (
     <div
-      className={`min-h-screen flex flex-col transition-colors relative ${
+      className={`min-h-screen flex flex-col transition-colors relative pb-16 md:pb-0 ${
         portalMode === 'admin'
           ? 'dark:bg-[#00261c] bg-[#f5f2eb]'
           : 'dark:bg-[#001c15] bg-[#f5f2eb]'
@@ -72,7 +72,7 @@ const ClinicAppContent: React.FC = () => {
           />
         )}
 
-        <main className="flex-1 p-6 overflow-y-auto max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-3 sm:p-6 overflow-y-auto max-w-7xl mx-auto w-full">
           {portalMode === 'patient' ? (
             <DoctorProfileLanding />
           ) : (
@@ -84,6 +84,7 @@ const ClinicAppContent: React.FC = () => {
                   onOpenNewExpense={() => setShowExpenseModal(true)}
                   onOpenSoapNote={(patientId, appointmentId) => setSoapModalData({ patientId, appointmentId })}
                   onViewPatientProfile={patientId => setDossierPatientId(patientId)}
+                  onOpenAiPrompt={handleOpenAiPrompt}
                 />
               )}
 
@@ -122,7 +123,7 @@ const ClinicAppContent: React.FC = () => {
       {portalMode === 'admin' && (
         <button
           onClick={() => setAiDrawerState(prev => ({ isOpen: !prev.isOpen, initialPrompt: null }))}
-          className="fixed bottom-6 right-6 z-40 px-4.5 py-3 rounded-full bg-[#00cb87] text-slate-950 font-black text-xs shadow-2xl border border-emerald-400 flex items-center gap-2 hover:scale-105 transition transform"
+          className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 px-4 py-3 rounded-full bg-[#00cb87] text-slate-950 font-black text-xs shadow-2xl border border-emerald-400 flex items-center gap-2 hover:scale-105 transition transform"
         >
           <Sparkles className="w-4 h-4 text-slate-950 animate-spin-slow" />
           <span>المساعد الذكي</span>

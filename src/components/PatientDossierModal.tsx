@@ -49,30 +49,31 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl rounded-2xl dark:bg-[#00261c] bg-[#f5f2eb] border dark:border-[#00cb87]/30 border-[#e3ded5] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-4xl rounded-2xl dark:bg-[#00261c] bg-[#f5f2eb] border dark:border-[#00cb87]/40 border-[#00473e]/30 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="p-6 bg-[#001c15] text-white flex items-center justify-between border-b border-[#00cb87]/20">
+        <div className="p-4 sm:p-6 bg-[#001c15] text-white flex items-center justify-between border-b border-[#00cb87]/30">
           <div>
-            <div className="text-xs text-[#00cb87] font-bold uppercase tracking-wider">
+            <div className="text-[10px] sm:text-xs text-[#00cb87] font-bold uppercase tracking-wider">
               Patient Electronic Health Record (EHR) Dossier
             </div>
-            <h2 className="text-2xl font-black">{patient.full_name}</h2>
-            <div className="text-xs text-slate-300 font-mono mt-1">
-              National ID: {patient.national_id} | Phone: {patient.phone} | Age: {patient.age}y ({patient.gender}) | Blood: {patient.blood_type}
+            <h2 className="text-lg sm:text-2xl font-black text-white">{patient.full_name}</h2>
+            <div className="text-[11px] sm:text-xs text-slate-300 font-mono mt-1" dir="ltr">
+              ID: {patient.national_id} | Phone: {patient.phone} | Age: {patient.age}y ({patient.gender}) | Blood: {patient.blood_type}
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {onOpenAiPrompt && (
               <button
                 onClick={handleAiAnalysis}
-                className="px-3.5 py-2 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow-lg transition flex items-center gap-1.5"
+                className="px-3 sm:px-4 py-2 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow-lg transition flex items-center gap-1.5"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>تحليل الملف بالذكاء الاصطناعي</span>
+                <span className="hidden sm:inline">تحليل الملف بالذكاء الاصطناعي</span>
+                <span className="sm:hidden">تحليل AI</span>
               </button>
             )}
-            <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10">
+            <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -80,57 +81,57 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
 
         {/* Medical Alert Banner if exists */}
         {patient.allergies && patient.allergies !== 'None' && (
-          <div className="bg-rose-500/10 border-b border-rose-500/30 px-6 py-2 text-rose-400 text-xs font-bold flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
+          <div className="bg-rose-500/15 border-b border-rose-500/40 px-4 sm:px-6 py-2 text-rose-950 dark:text-rose-300 text-xs font-bold flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>CRITICAL MEDICAL ALLERGY: {patient.allergies}</span>
           </div>
         )}
 
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-4 px-6 pt-4 border-b dark:border-white/10 border-[#e3ded5] text-xs font-bold">
+        {/* Navigation Tabs (Scrollable on small screens) */}
+        <div className="flex items-center gap-4 px-4 sm:px-6 pt-3 border-b dark:border-white/10 border-[#e3ded5] text-xs font-bold overflow-x-auto whitespace-nowrap">
           <button
             onClick={() => setActiveTab('visits')}
-            className={`pb-3 border-b-2 flex items-center gap-2 ${
-              activeTab === 'visits' ? 'border-[#00cb87] text-[#00cb87]' : 'border-transparent text-slate-500'
+            className={`pb-3 border-b-2 flex items-center gap-2 transition ${
+              activeTab === 'visits' ? 'border-[#00cb87] text-[#00473e] dark:text-[#00cb87]' : 'border-transparent text-slate-600 dark:text-slate-400'
             }`}
           >
-            <Calendar className="w-4 h-4" />
+            <Calendar className="w-4 h-4 text-[#00cb87]" />
             <span>Visit History ({patientAppointments.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('prescriptions')}
-            className={`pb-3 border-b-2 flex items-center gap-2 ${
-              activeTab === 'prescriptions' ? 'border-[#00cb87] text-[#00cb87]' : 'border-transparent text-slate-500'
+            className={`pb-3 border-b-2 flex items-center gap-2 transition ${
+              activeTab === 'prescriptions' ? 'border-[#00cb87] text-[#00473e] dark:text-[#00cb87]' : 'border-transparent text-slate-600 dark:text-slate-400'
             }`}
           >
-            <FileText className="w-4 h-4" />
+            <FileText className="w-4 h-4 text-[#00cb87]" />
             <span>Prescriptions ({records.reduce((acc, r) => acc + (r.prescription_json?.length || 0), 0)})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('billing')}
-            className={`pb-3 border-b-2 flex items-center gap-2 ${
-              activeTab === 'billing' ? 'border-[#00cb87] text-[#00cb87]' : 'border-transparent text-slate-500'
+            className={`pb-3 border-b-2 flex items-center gap-2 transition ${
+              activeTab === 'billing' ? 'border-[#00cb87] text-[#00473e] dark:text-[#00cb87]' : 'border-transparent text-slate-600 dark:text-slate-400'
             }`}
           >
-            <DollarSign className="w-4 h-4" />
+            <DollarSign className="w-4 h-4 text-[#00cb87]" />
             <span>Invoices & Billing ({invoices.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('labs')}
-            className={`pb-3 border-b-2 flex items-center gap-2 ${
-              activeTab === 'labs' ? 'border-[#00cb87] text-[#00cb87]' : 'border-transparent text-slate-500'
+            className={`pb-3 border-b-2 flex items-center gap-2 transition ${
+              activeTab === 'labs' ? 'border-[#00cb87] text-[#00473e] dark:text-[#00cb87]' : 'border-transparent text-slate-600 dark:text-slate-400'
             }`}
           >
-            <File className="w-4 h-4" />
+            <File className="w-4 h-4 text-[#00cb87]" />
             <span>Lab Reports & Attachments ({labFiles.length})</span>
           </button>
         </div>
 
         {/* Body Content */}
-        <div className="p-6 overflow-y-auto space-y-4 flex-1 text-xs">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1 text-xs">
           {/* Tab 1: Visits & SOAP Notes */}
           {activeTab === 'visits' && (
             <div className="space-y-4">
@@ -138,40 +139,40 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
                 <h4 className="font-bold text-[#122620] dark:text-white">Chronological Encounters</h4>
                 <button
                   onClick={() => onOpenSoapEditor(patient.id)}
-                  className="px-3 py-1.5 rounded-xl bg-[#00473e] text-white font-extrabold text-xs hover:bg-[#003831]"
+                  className="px-3 py-1.5 rounded-xl bg-[#00cb87] text-slate-950 font-black text-xs hover:bg-[#00b074] transition"
                 >
                   + Add New SOAP Encounter
                 </button>
               </div>
 
               {records.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 border border-dashed rounded-xl dark:border-[#00cb87]/20">
+                <div className="p-8 text-center text-slate-500 dark:text-slate-400 border border-dashed rounded-2xl dark:border-[#00cb87]/30 border-[#e3ded5]">
                   No SOAP clinical records added yet.
                 </div>
               ) : (
                 records.map(rec => (
-                  <div key={rec.id} className="p-4 rounded-xl dark:bg-[#001c15] bg-white border dark:border-[#00cb87]/20 border-[#e3ded5] space-y-3">
+                  <div key={rec.id} className="p-4 rounded-2xl dark:bg-[#001c15] bg-white border dark:border-[#00cb87]/30 border-[#e3ded5] space-y-3 shadow-sm">
                     <div className="flex items-center justify-between border-b dark:border-white/10 border-[#e3ded5] pb-2">
-                      <span className="font-mono text-[#00cb87] font-bold">{rec.created_at.split('T')[0]}</span>
+                      <span className="font-mono text-[#00cb87] font-bold" dir="ltr">{rec.created_at.split('T')[0]}</span>
                       <span className="font-bold dark:text-white text-[#122620]">{rec.diagnosis}</span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
                       <div>
-                        <strong className="text-slate-400 block uppercase tracking-wider text-[9px]">Subjective</strong>
-                        <p className="dark:text-slate-200 text-slate-800 mt-0.5">{rec.soap_subjective}</p>
+                        <strong className="text-[#00473e] dark:text-[#00cb87] block uppercase tracking-wider text-[9px] font-extrabold">Subjective</strong>
+                        <p className="dark:text-slate-200 text-slate-800 mt-0.5 leading-relaxed">{rec.soap_subjective}</p>
                       </div>
                       <div>
-                        <strong className="text-slate-400 block uppercase tracking-wider text-[9px]">Objective</strong>
-                        <p className="dark:text-slate-200 text-slate-800 mt-0.5">{rec.soap_objective}</p>
+                        <strong className="text-[#00473e] dark:text-[#00cb87] block uppercase tracking-wider text-[9px] font-extrabold">Objective</strong>
+                        <p className="dark:text-slate-200 text-slate-800 mt-0.5 leading-relaxed">{rec.soap_objective}</p>
                       </div>
                       <div>
-                        <strong className="text-slate-400 block uppercase tracking-wider text-[9px]">Assessment</strong>
-                        <p className="dark:text-slate-200 text-slate-800 mt-0.5">{rec.soap_assessment}</p>
+                        <strong className="text-[#00473e] dark:text-[#00cb87] block uppercase tracking-wider text-[9px] font-extrabold">Assessment</strong>
+                        <p className="dark:text-slate-200 text-slate-800 mt-0.5 leading-relaxed">{rec.soap_assessment}</p>
                       </div>
                       <div>
-                        <strong className="text-slate-400 block uppercase tracking-wider text-[9px]">Plan</strong>
-                        <p className="dark:text-slate-200 text-slate-800 mt-0.5 whitespace-pre-line">{rec.soap_plan}</p>
+                        <strong className="text-[#00473e] dark:text-[#00cb87] block uppercase tracking-wider text-[9px] font-extrabold">Plan</strong>
+                        <p className="dark:text-slate-200 text-slate-800 mt-0.5 whitespace-pre-line leading-relaxed">{rec.soap_plan}</p>
                       </div>
                     </div>
                   </div>
@@ -185,17 +186,17 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
             <div className="space-y-3">
               <h4 className="font-bold text-[#122620] dark:text-white">Prescription Log</h4>
               {records.flatMap(r => r.prescription_json || []).length === 0 ? (
-                <div className="p-8 text-center text-slate-400 border border-dashed rounded-xl dark:border-[#00cb87]/20">
+                <div className="p-8 text-center text-slate-500 dark:text-slate-400 border border-dashed rounded-2xl dark:border-[#00cb87]/30 border-[#e3ded5]">
                   No active prescriptions recorded.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {records.flatMap(r =>
                     (r.prescription_json || []).map(p => (
-                      <div key={p.id} className="p-3 rounded-xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/20">
+                      <div key={p.id} className="p-3.5 rounded-2xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm">
                         <div className="font-bold text-[#00cb87] text-sm">{p.medication} ({p.dosage})</div>
-                        <div className="text-slate-400 mt-1">Frequency: {p.frequency} | Duration: {p.duration}</div>
-                        <div className="text-slate-500 italic mt-1">{p.instructions}</div>
+                        <div className="text-slate-600 dark:text-slate-300 mt-1 font-mono text-[11px]" dir="ltr">Frequency: {p.frequency} | Duration: {p.duration}</div>
+                        <div className="text-slate-500 dark:text-slate-400 italic mt-1">{p.instructions}</div>
                       </div>
                     ))
                   )}
@@ -209,25 +210,25 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
             <div className="space-y-3">
               <h4 className="font-bold text-[#122620] dark:text-white">Patient Invoices & Payment Ledger</h4>
               {invoices.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 border border-dashed rounded-xl dark:border-[#00cb87]/20">
+                <div className="p-8 text-center text-slate-500 dark:text-slate-400 border border-dashed rounded-2xl dark:border-[#00cb87]/30 border-[#e3ded5]">
                   No billing invoices issued for this patient.
                 </div>
               ) : (
                 <div className="space-y-2">
                   {invoices.map(inv => (
-                    <div key={inv.id} className="p-3.5 rounded-xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/20 flex items-center justify-between">
+                    <div key={inv.id} className="p-3.5 rounded-2xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/30 flex items-center justify-between shadow-sm">
                       <div>
                         <div className="font-mono font-bold text-[#00cb87]">{inv.invoice_number}</div>
-                        <div className="text-slate-400 text-[10px]">Issued: {inv.created_at.split('T')[0]} | Method: {inv.payment_method}</div>
+                        <div className="text-slate-500 dark:text-slate-400 text-[10px]" dir="ltr">Issued: {inv.created_at.split('T')[0]} | Method: {inv.payment_method}</div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="text-right font-mono">
+                        <div className="text-right font-mono" dir="ltr">
                           <div className="font-bold text-[#122620] dark:text-white">EGP {inv.total_amount.toFixed(2)}</div>
                           <div className="text-[10px] text-emerald-500 font-bold">{inv.payment_status}</div>
                         </div>
                         <button
                           onClick={() => printInvoice(inv)}
-                          className="p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white hover:text-[#00cb87]"
+                          className="p-2 rounded-xl bg-[#ece7de] dark:bg-slate-800 text-[#122620] dark:text-white hover:text-[#00cb87] transition"
                           title="Print Official Branded PDF Invoice"
                         >
                           <Printer className="w-4 h-4" />
@@ -245,7 +246,7 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-bold text-[#122620] dark:text-white">Lab Diagnostics & Scans</h4>
-                <label className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 font-bold text-[#122620] dark:text-white hover:text-[#00cb87] cursor-pointer flex items-center gap-1.5">
+                <label className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 font-bold text-[#122620] dark:text-white hover:text-[#00cb87] cursor-pointer flex items-center gap-1.5 transition">
                   <Upload className="w-4 h-4 text-[#00cb87]" />
                   <span>Upload Document / Lab PDF</span>
                   <input type="file" onChange={handleFileUpload} className="hidden" accept=".pdf,.png,.jpg,.jpeg" />
@@ -254,17 +255,17 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
 
               <div className="space-y-2">
                 {labFiles.map(file => (
-                  <div key={file.id} className="p-3 rounded-xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/20 flex items-center justify-between">
+                  <div key={file.id} className="p-3.5 rounded-2xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/30 flex items-center justify-between shadow-sm">
                     <div className="flex items-center gap-3">
                       <File className="w-5 h-5 text-[#00cb87]" />
                       <div>
                         <div className="font-bold text-[#122620] dark:text-white">{file.name}</div>
-                        <div className="text-slate-400 text-[10px]">Uploaded: {file.date} | Size: {file.size}</div>
+                        <div className="text-slate-500 dark:text-slate-400 text-[10px]" dir="ltr">Uploaded: {file.date} | Size: {file.size}</div>
                       </div>
                     </div>
                     <button
                       onClick={() => alert(`Opening preview for document: ${file.name}`)}
-                      className="px-3 py-1 rounded-lg bg-[#00cb87]/10 text-[#00cb87] font-bold text-xs"
+                      className="px-3 py-1.5 rounded-xl bg-[#00cb87]/15 text-[#00cb87] font-bold text-xs hover:bg-[#00cb87] hover:text-slate-950 transition"
                     >
                       View Report
                     </button>

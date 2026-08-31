@@ -36,30 +36,30 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-xl rounded-2xl dark:bg-[#00261c] bg-[#f5f2eb] border dark:border-[#00cb87]/40 border-[#e3ded5] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-xl rounded-2xl dark:bg-[#00261c] bg-[#f5f2eb] border dark:border-[#00cb87]/40 border-[#00473e]/30 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="p-6 bg-[#001c15] text-white flex items-center justify-between border-b border-[#00cb87]/30">
+        <div className="p-4 sm:p-6 bg-[#001c15] text-white flex items-center justify-between border-b border-[#00cb87]/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#00cb87] text-slate-950 flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 rounded-xl bg-[#00cb87] text-slate-950 flex items-center justify-center shadow-lg shrink-0">
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-lg font-black tracking-tight text-white uppercase">
+              <h2 className="text-sm sm:text-lg font-black tracking-tight text-white uppercase">
                 Smart Triage & WhatsApp Follow-up
               </h2>
-              <p className="text-xs text-[#00cb87]">Automated Interval Calculator & Patient Reminder Drafter</p>
+              <p className="text-xs text-[#00cb87] font-bold">Automated Interval Calculator & Patient Reminder Drafter</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10">
+          <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition">
             <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1 text-xs">
           <div>
-            <label className="block text-slate-400 font-bold mb-1">Target Diagnosis / Protocol</label>
+            <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Target Diagnosis / Protocol</label>
             <input
               type="text"
               value={customDiagnosis}
@@ -69,21 +69,21 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
           </div>
 
           {/* Optimal Interval Recommendation Card */}
-          <div className="p-4 rounded-xl bg-[#001c15] border border-[#00cb87]/40 space-y-2">
+          <div className="p-4 rounded-2xl bg-[#001c15] border border-[#00cb87]/40 space-y-2 text-white shadow-md">
             <div className="text-[10px] font-bold text-[#00cb87] uppercase tracking-wider flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               <span>AI Recommended Follow-up Interval</span>
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-black font-mono text-white">
+                <div className="text-xl sm:text-2xl font-black font-mono text-white" dir="ltr">
                   {triage.optimal_interval_days} Days <span className="text-xs text-slate-400 font-normal">Interval</span>
                 </div>
-                <div className="text-xs text-slate-300 mt-0.5">
+                <div className="text-xs text-slate-300 mt-0.5" dir="ltr">
                   Recommended Date: <strong>{triage.recommended_followup_date}</strong>
                 </div>
               </div>
-              <span className="px-3 py-1 rounded-full bg-[#00cb87]/20 text-[#00cb87] border border-[#00cb87]/30 text-xs font-bold">
+              <span className="px-3 py-1 rounded-full bg-[#00cb87]/20 text-[#00cb87] border border-[#00cb87]/40 text-xs font-bold">
                 Optimal Recovery
               </span>
             </div>
@@ -93,14 +93,14 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h4 className="font-extrabold text-[#122620] dark:text-white flex items-center gap-1.5">
-                <MessageSquare className="w-4 h-4 text-emerald-400" />
+                <MessageSquare className="w-4 h-4 text-[#00cb87]" />
                 <span>Generated Personalized WhatsApp Reminder</span>
               </h4>
               <button
                 onClick={handleCopyWhatsApp}
-                className="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 font-bold text-xs flex items-center gap-1 transition"
+                className="px-3 py-1 rounded-lg bg-[#00cb87]/15 text-[#00cb87] hover:bg-[#00cb87]/30 border border-[#00cb87]/30 font-bold text-xs flex items-center gap-1 transition"
               >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-[#00cb87]" /> : <Copy className="w-3.5 h-3.5 text-[#00cb87]" />}
                 <span>{copied ? 'Copied to Clipboard!' : 'Copy Message'}</span>
               </button>
             </div>
@@ -109,7 +109,7 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
               rows={4}
               readOnly
               value={triage.whatsapp_message}
-              className="w-full p-3 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 text-slate-800 dark:text-emerald-300 font-mono text-[11px] leading-relaxed"
+              className="w-full p-3 rounded-2xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-[#00cb87] font-mono text-[11px] leading-relaxed shadow-sm"
             />
           </div>
 
@@ -121,7 +121,7 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
             </h4>
             <div className="space-y-1.5">
               {triage.care_instructions.map((inst, idx) => (
-                <div key={idx} className="p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 dark:text-slate-300 text-slate-800">
+                <div key={idx} className="p-3 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 dark:text-slate-200 text-[#122620] font-bold shadow-sm">
                   • {inst}
                 </div>
               ))}
@@ -129,13 +129,14 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
           </div>
         </div>
 
-        <div className="p-4 bg-[#001c15] border-t border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        {/* Footer */}
+        <div className="p-4 bg-[#001c15] border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <a
               href={`https://wa.me/${patient.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(triage.whatsapp_message)}`}
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center gap-1.5"
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition"
             >
               <MessageSquare className="w-4 h-4" />
               <span>إرسال عبر واتساب</span>
@@ -143,7 +144,7 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
             {onOpenAiPrompt && (
               <button
                 onClick={handleAskAiDrawer}
-                className="px-3.5 py-2 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow transition flex items-center gap-1.5"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow transition flex items-center justify-center gap-1.5"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>تحليل الحالة في الشات</span>
@@ -152,7 +153,7 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-white/10 text-white font-bold text-xs"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/10 text-white font-bold text-xs text-center transition hover:bg-white/20"
           >
             إغلاق
           </button>
