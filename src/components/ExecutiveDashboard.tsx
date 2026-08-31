@@ -132,24 +132,24 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2 w-full sm:w-auto">
           <button
             onClick={onOpenNewAppointment}
-            className="px-4 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow transition flex items-center gap-1.5"
+            className="w-full px-4 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow transition flex items-center justify-center gap-1.5"
           >
             <UserPlus className="w-4 h-4 text-slate-950" />
             <span>{t('book_appointment')}</span>
           </button>
           <button
             onClick={onOpenNewInvoice}
-            className="px-3.5 py-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] text-[#122620] dark:text-white hover:bg-slate-200 border border-[#e3ded5] dark:border-[#00cb87]/30 font-bold text-xs transition flex items-center gap-1.5"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] text-[#122620] dark:text-white hover:bg-slate-200 border border-[#e3ded5] dark:border-[#00cb87]/30 font-bold text-xs transition flex items-center justify-center gap-1.5"
           >
             <PlusCircle className="w-4 h-4 text-[#00473e] dark:text-[#00cb87]" />
             <span>{t('new_invoice')}</span>
           </button>
           <button
             onClick={onOpenNewExpense}
-            className="px-3.5 py-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] text-[#122620] dark:text-white hover:bg-slate-200 border border-[#e3ded5] dark:border-[#00cb87]/30 font-bold text-xs transition flex items-center gap-1.5"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] text-[#122620] dark:text-white hover:bg-slate-200 border border-[#e3ded5] dark:border-[#00cb87]/30 font-bold text-xs transition flex items-center justify-center gap-1.5"
           >
             <DollarSign className="w-4 h-4 text-rose-500" />
             <span>{t('record_expense')}</span>

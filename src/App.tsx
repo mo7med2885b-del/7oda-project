@@ -123,7 +123,7 @@ const ClinicAppContent: React.FC = () => {
       {portalMode === 'admin' && (
         <button
           onClick={() => setAiDrawerState(prev => ({ isOpen: !prev.isOpen, initialPrompt: null }))}
-          className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 px-4 py-3 rounded-full bg-[#00cb87] text-slate-950 font-black text-xs shadow-2xl border border-emerald-400 flex items-center gap-2 hover:scale-105 transition transform"
+          className="fixed bottom-[74px] md:bottom-6 right-3 md:right-6 z-30 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-[#00cb87] text-slate-950 font-black text-xs shadow-2xl border border-emerald-400 flex items-center gap-2 hover:scale-105 transition transform"
         >
           <Sparkles className="w-4 h-4 text-slate-950 animate-spin-slow" />
           <span>المساعد الذكي</span>
