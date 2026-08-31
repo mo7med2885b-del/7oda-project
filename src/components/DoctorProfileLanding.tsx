@@ -202,7 +202,7 @@ export const DoctorProfileLanding: React.FC = () => {
 
       {/* 2. STATS OVERVIEW CARDS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-        {doctorInfo.verified_stats.map((stat, idx) => (
+        {doctorInfo.stats.map((stat, idx) => (
           <div
             key={idx}
             className="p-5 sm:p-6 rounded-3xl bg-[#001c15] border border-[#00cb87]/30 shadow-xl space-y-2 text-center transform hover:-translate-y-1 transition"
