@@ -32,8 +32,20 @@ const ClinicAppContent: React.FC = () => {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showAiAdvisorModal, setShowAiAdvisorModal] = useState(false);
-  const [showFeatherlessAiDrawer, setShowFeatherlessAiDrawer] = useState(false);
   const [triagePatientId, setTriagePatientId] = useState<string | null>(null);
+
+  // AI Drawer State with Prompt Support
+  const [aiDrawerState, setAiDrawerState] = useState<{ isOpen: boolean; initialPrompt: string | null }>({
+    isOpen: false,
+    initialPrompt: null
+  });
+
+  const handleOpenAiPrompt = (promptText: string) => {
+    setAiDrawerState({
+      isOpen: true,
+      initialPrompt: promptText
+    });
+  };
 
   const handleSelectPortalMode = (mode: 'admin' | 'patient') => {
     setPortalMode(mode);
@@ -81,6 +93,7 @@ const ClinicAppContent: React.FC = () => {
                 <PatientRegistry
                   onViewPatientDossier={patientId => setDossierPatientId(patientId)}
                   onOpenSoapEditor={patientId => setSoapModalData({ patientId })}
+                  onOpenAiPrompt={handleOpenAiPrompt}
                 />
               )}
 
@@ -108,7 +121,7 @@ const ClinicAppContent: React.FC = () => {
       {/* Floating Featherless AI Action Launcher (Doctor Mode) */}
       {portalMode === 'admin' && (
         <button
-          onClick={() => setShowFeatherlessAiDrawer(!showFeatherlessAiDrawer)}
+          onClick={() => setAiDrawerState(prev => ({ isOpen: !prev.isOpen, initialPrompt: null }))}
           className="fixed bottom-6 right-6 z-40 px-4.5 py-3 rounded-full bg-[#00cb87] text-slate-950 font-black text-xs shadow-2xl border border-emerald-400 flex items-center gap-2 hover:scale-105 transition transform"
         >
           <Sparkles className="w-4 h-4 text-slate-950 animate-spin-slow" />
@@ -128,6 +141,7 @@ const ClinicAppContent: React.FC = () => {
             setDossierPatientId(null);
             setSoapModalData({ patientId, appointmentId });
           }}
+          onOpenAiPrompt={handleOpenAiPrompt}
         />
       )}
 
@@ -136,6 +150,7 @@ const ClinicAppContent: React.FC = () => {
           patientId={soapModalData.patientId}
           appointmentId={soapModalData.appointmentId}
           onClose={() => setSoapModalData(null)}
+          onOpenAiPrompt={handleOpenAiPrompt}
         />
       )}
 
@@ -143,13 +158,26 @@ const ClinicAppContent: React.FC = () => {
 
       {showExpenseModal && <ExpenseModal onClose={() => setShowExpenseModal(false)} />}
 
-      {showAiAdvisorModal && <AiFinancialAdvisorModal onClose={() => setShowAiAdvisorModal(false)} />}
-
-      {showFeatherlessAiDrawer && (
-        <FeatherlessAiChatDrawer isOpen={showFeatherlessAiDrawer} onClose={() => setShowFeatherlessAiDrawer(false)} />
+      {showAiAdvisorModal && (
+        <AiFinancialAdvisorModal
+          onClose={() => setShowAiAdvisorModal(false)}
+          onOpenAiPrompt={handleOpenAiPrompt}
+        />
       )}
 
-      {triagePatientId && <AiTriageModal patientId={triagePatientId} onClose={() => setTriagePatientId(null)} />}
+      <FeatherlessAiChatDrawer
+        isOpen={aiDrawerState.isOpen}
+        initialPrompt={aiDrawerState.initialPrompt}
+        onClose={() => setAiDrawerState({ isOpen: false, initialPrompt: null })}
+      />
+
+      {triagePatientId && (
+        <AiTriageModal
+          patientId={triagePatientId}
+          onClose={() => setTriagePatientId(null)}
+          onOpenAiPrompt={handleOpenAiPrompt}
+        />
+      )}
     </div>
   );
 };

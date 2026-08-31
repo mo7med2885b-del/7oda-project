@@ -6,16 +6,17 @@ import { X, Sparkles, MessageSquare, Copy, Check, Calendar, HeartPulse } from 'l
 interface AiTriageModalProps {
   patientId: string;
   onClose: () => void;
+  onOpenAiPrompt?: (prompt: string) => void;
 }
 
-export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose }) => {
+export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose, onOpenAiPrompt }) => {
   const { getPatientById, getMedicalRecordsByPatient } = useClinic();
   const patient = getPatientById(patientId);
   const records = getMedicalRecordsByPatient(patientId);
   const lastRecord = records[0];
 
   const [copied, setCopied] = useState(false);
-  const [customDiagnosis, setCustomDiagnosis] = useState(lastRecord ? lastRecord.diagnosis : 'Essential Primary Hypertension');
+  const [customDiagnosis, setCustomDiagnosis] = useState(lastRecord ? lastRecord.diagnosis : 'متابعة الحقن المجهري');
 
   if (!patient) return null;
 
@@ -27,23 +28,30 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleAskAiDrawer = () => {
+    if (!onOpenAiPrompt) return;
+    const prompt = `قم بتحليل حالة المريضة ورأيك الكلينيكي بخصوص المتابعة والفرز:\n• المريضة: ${patient.full_name}\n• التشخيص الحالي: ${customDiagnosis}\n• موعد المتابعة المقترح: ${triage.recommended_followup_date} (${triage.optimal_interval_days} أيام)\n• نص رسالة المتابعة: "${triage.whatsapp_message}"\nما هي النصائح الكلينيكية الإضافية لمتابعة حالة المريضة؟`;
+    onOpenAiPrompt(prompt);
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-xl rounded-2xl dark:bg-[#00182e] bg-white border dark:border-[#00d9ff]/40 border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-xl rounded-2xl dark:bg-[#00261c] bg-[#f5f2eb] border dark:border-[#00cb87]/40 border-[#e3ded5] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-6 bg-gradient-to-r from-[#00101f] via-[#00182e] to-[#00284c] text-white flex items-center justify-between border-b border-[#00d9ff]/30">
+        <div className="p-6 bg-[#001c15] text-white flex items-center justify-between border-b border-[#00cb87]/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#00d9ff] to-cyan-400 flex items-center justify-center text-slate-950 shadow-lg shadow-cyan-500/30">
-              <Sparkles className="w-6 h-6 animate-spin-slow" />
+            <div className="w-10 h-10 rounded-xl bg-[#00cb87] text-slate-950 flex items-center justify-center shadow-lg">
+              <Sparkles className="w-6 h-6" />
             </div>
             <div>
               <h2 className="text-lg font-black tracking-tight text-white uppercase">
-                AI Feature 3: Smart Triage & WhatsApp Follow-up
+                Smart Triage & WhatsApp Follow-up
               </h2>
-              <p className="text-xs text-cyan-300">Automated Interval Calculator & Patient Reminder Drafter</p>
+              <p className="text-xs text-[#00cb87]">Automated Interval Calculator & Patient Reminder Drafter</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">
+          <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -56,13 +64,13 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
               type="text"
               value={customDiagnosis}
               onChange={e => setCustomDiagnosis(e.target.value)}
-              className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/30 text-slate-900 dark:text-white font-bold"
+              className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-bold"
             />
           </div>
 
           {/* Optimal Interval Recommendation Card */}
-          <div className="p-4 rounded-xl bg-[#00101f] border border-[#00d9ff]/40 space-y-2">
-            <div className="text-[10px] font-bold text-[#00d9ff] uppercase tracking-wider flex items-center gap-1.5">
+          <div className="p-4 rounded-xl bg-[#001c15] border border-[#00cb87]/40 space-y-2">
+            <div className="text-[10px] font-bold text-[#00cb87] uppercase tracking-wider flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               <span>AI Recommended Follow-up Interval</span>
             </div>
@@ -75,7 +83,7 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
                   Recommended Date: <strong>{triage.recommended_followup_date}</strong>
                 </div>
               </div>
-              <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+              <span className="px-3 py-1 rounded-full bg-[#00cb87]/20 text-[#00cb87] border border-[#00cb87]/30 text-xs font-bold">
                 Optimal Recovery
               </span>
             </div>
@@ -84,7 +92,7 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
           {/* Personalized WhatsApp Message Drafter */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h4 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <h4 className="font-extrabold text-[#122620] dark:text-white flex items-center gap-1.5">
                 <MessageSquare className="w-4 h-4 text-emerald-400" />
                 <span>Generated Personalized WhatsApp Reminder</span>
               </h4>
@@ -101,19 +109,19 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
               rows={4}
               readOnly
               value={triage.whatsapp_message}
-              className="w-full p-3 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 text-slate-800 dark:text-emerald-300 font-mono text-[11px] leading-relaxed"
+              className="w-full p-3 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 text-slate-800 dark:text-emerald-300 font-mono text-[11px] leading-relaxed"
             />
           </div>
 
           {/* Care Instructions */}
           <div className="space-y-2">
-            <h4 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
-              <HeartPulse className="w-4 h-4 text-[#00d9ff]" />
+            <h4 className="font-extrabold text-[#122620] dark:text-white flex items-center gap-1.5">
+              <HeartPulse className="w-4 h-4 text-[#00cb87]" />
               <span>Tailored Patient Care Instructions</span>
             </h4>
             <div className="space-y-1.5">
               {triage.care_instructions.map((inst, idx) => (
-                <div key={idx} className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 dark:text-slate-300 text-slate-800">
+                <div key={idx} className="p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 dark:text-slate-300 text-slate-800">
                   • {inst}
                 </div>
               ))}
@@ -121,21 +129,32 @@ export const AiTriageModal: React.FC<AiTriageModalProps> = ({ patientId, onClose
           </div>
         </div>
 
-        <div className="p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
-          <a
-            href={`https://wa.me/${patient.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(triage.whatsapp_message)}`}
-            target="_blank"
-            rel="noreferrer"
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center gap-1.5"
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Open Direct WhatsApp Chat</span>
-          </a>
+        <div className="p-4 bg-[#001c15] border-t border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <a
+              href={`https://wa.me/${patient.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(triage.whatsapp_message)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center gap-1.5"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>إرسال عبر واتساب</span>
+            </a>
+            {onOpenAiPrompt && (
+              <button
+                onClick={handleAskAiDrawer}
+                className="px-3.5 py-2 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow transition flex items-center gap-1.5"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>تحليل الحالة في الشات</span>
+              </button>
+            )}
+          </div>
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs"
+            className="px-4 py-2 rounded-xl bg-white/10 text-white font-bold text-xs"
           >
-            Close Triage
+            إغلاق
           </button>
         </div>
       </div>

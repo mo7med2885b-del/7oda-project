@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useClinic } from '../context/ClinicContext';
 import { generateSoapFromRoughNotes } from '../utils/aiEngine';
-import { X, Sparkles, FileText, Check, Plus, Trash2 } from 'lucide-react';
+import { X, Sparkles, FileText, Plus, Trash2 } from 'lucide-react';
 
 interface SoapNoteEditorModalProps {
   patientId: string;
   appointmentId?: string;
   onClose: () => void;
+  onOpenAiPrompt?: (prompt: string) => void;
 }
 
-export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patientId, appointmentId, onClose }) => {
+export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patientId, appointmentId, onClose, onOpenAiPrompt }) => {
   const { getPatientById, addMedicalRecord } = useClinic();
   const patient = getPatientById(patientId);
 
@@ -69,6 +70,13 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
     }, 600);
   };
 
+  const handleAskAiAssistant = () => {
+    if (!onOpenAiPrompt) return;
+    const prompt = `أحتاج مساعدة كلينيكية في صياغة روشتة وملاحظات SOAP للمريضة: ${patient.full_name}\n• الشكوى: ${chiefComplaint || roughNotes || 'متابعة عادية'}\n• التشخيص: ${diagnosis || 'متابعة كلينيكية'}\nاقترح الجرعات والعلاجات المناسبة للحقن المجهري أو النساء والتوليد.`;
+    onOpenAiPrompt(prompt);
+    onClose();
+  };
+
   const handleAddRxRow = () => {
     setPrescriptions(prev => [
       ...prev,
@@ -113,17 +121,17 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl rounded-2xl dark:bg-[#00182e] bg-white border dark:border-[#00d9ff]/30 border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="w-full max-w-4xl rounded-2xl dark:bg-[#00261c] bg-[#f5f2eb] border dark:border-[#00cb87]/30 border-[#e3ded5] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="p-6 bg-[#00101f] text-white flex items-center justify-between border-b border-[#00d9ff]/20">
+        <div className="p-6 bg-[#001c15] text-white flex items-center justify-between border-b border-[#00cb87]/20">
           <div>
-            <div className="text-xs text-[#00d9ff] font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <div className="text-xs text-[#00cb87] font-bold uppercase tracking-wider flex items-center gap-1.5">
               <FileText className="w-4 h-4" />
               Smart Clinical SOAP Note Editor & AI Medical Scribe
             </div>
             <h2 className="text-xl font-black mt-1">Encounters for {patient.full_name}</h2>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">
+          <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -131,23 +139,35 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
         {/* Content Body */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
           {/* AI Feature 1 Widget: AI Scribe & Summarizer */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-[#00101f] via-[#00182e] to-[#00284c] border border-[#00d9ff]/40 shadow-xl space-y-3">
+          <div className="p-4 rounded-2xl bg-[#001c15] border border-[#00cb87]/40 shadow-xl space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[#00d9ff]">
+              <div className="flex items-center gap-2 text-[#00cb87]">
                 <Sparkles className="w-4 h-4 animate-pulse" />
                 <span className="font-extrabold text-xs uppercase tracking-wider">
-                  AI Feature 1: AI Doctor Scribe & Auto-SOAP Transformer
+                  AI Doctor Scribe & Auto-SOAP Transformer
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={handleRunAiScribe}
-                disabled={isAiProcessing}
-                className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#00d9ff] to-cyan-400 text-slate-950 font-black text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 transition flex items-center gap-1.5"
-              >
-                {isAiProcessing ? 'Transforming...' : 'Generate Structured SOAP'}
-                <Sparkles className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {onOpenAiPrompt && (
+                  <button
+                    type="button"
+                    onClick={handleAskAiAssistant}
+                    className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#00cb87] font-bold text-xs flex items-center gap-1"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>مساعدة الشات الذكي</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleRunAiScribe}
+                  disabled={isAiProcessing}
+                  className="px-4 py-1.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md"
+                >
+                  {isAiProcessing ? 'Transforming...' : 'Generate Structured SOAP'}
+                  <Sparkles className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
             <p className="text-[11px] text-slate-300">
               Paste rough doctor dictation or shorthand notes below. The AI engine will format it into Subjective, Objective, Assessment, Plan & Rx!
@@ -157,12 +177,12 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
               value={roughNotes}
               onChange={e => setRoughNotes(e.target.value)}
               placeholder="e.g., Patient complaining of 4 days sore throat, high grade fever 38.5, enlarged tonsils with purulent exudate, no cough. Allergy to penicillin. Suspect acute streptococcal pharyngitis."
-              className="w-full p-2.5 rounded-xl bg-[#00101f] text-white border border-[#00d9ff]/30 focus:ring-2 focus:ring-[#00d9ff]"
+              className="w-full p-2.5 rounded-xl bg-[#00261c] text-white border border-[#00cb87]/30 focus:ring-2 focus:ring-[#00cb87]"
             />
           </div>
 
           {/* Vitals Input Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-3 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20">
             <div>
               <label className="text-slate-400 font-bold block text-[10px]">BP (mmHg)</label>
               <input type="text" value={bp} onChange={e => setBp(e.target.value)} className="w-full p-1 rounded bg-transparent border-b border-slate-300 dark:border-slate-700 font-mono font-bold dark:text-white" />
@@ -188,25 +208,25 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
           {/* Chief Complaint & Diagnosis */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-200 mb-1">Chief Complaint *</label>
+              <label className="block font-bold text-[#122620] dark:text-slate-200 mb-1">Chief Complaint *</label>
               <input
                 type="text"
                 required
                 value={chiefComplaint}
                 onChange={e => setChiefComplaint(e.target.value)}
                 placeholder="Primary symptom or reason for visit"
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 text-slate-900 dark:text-white"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 text-[#122620] dark:text-white"
               />
             </div>
             <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-200 mb-1">Clinical Diagnosis *</label>
+              <label className="block font-bold text-[#122620] dark:text-slate-200 mb-1">Clinical Diagnosis *</label>
               <input
                 type="text"
                 required
                 value={diagnosis}
                 onChange={e => setDiagnosis(e.target.value)}
                 placeholder="Primary ICD-10 or clinical assessment"
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 text-slate-900 dark:text-white font-bold"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 text-[#122620] dark:text-white font-bold"
               />
             </div>
           </div>
@@ -214,59 +234,59 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
           {/* SOAP Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">S - Subjective (Patient History & Symptoms)</label>
+              <label className="block font-bold text-[#122620] dark:text-slate-300 mb-1">S - Subjective (Patient History & Symptoms)</label>
               <textarea
                 rows={3}
                 value={soapSubjective}
                 onChange={e => setSoapSubjective(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 text-slate-900 dark:text-white"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 text-[#122620] dark:text-white"
               />
             </div>
             <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">O - Objective (Physical Exam & Labs)</label>
+              <label className="block font-bold text-[#122620] dark:text-slate-300 mb-1">O - Objective (Physical Exam & Labs)</label>
               <textarea
                 rows={3}
                 value={soapObjective}
                 onChange={e => setSoapObjective(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 text-slate-900 dark:text-white"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 text-[#122620] dark:text-white"
               />
             </div>
             <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">A - Assessment (Evaluation & Severity)</label>
+              <label className="block font-bold text-[#122620] dark:text-slate-300 mb-1">A - Assessment (Evaluation & Severity)</label>
               <textarea
                 rows={3}
                 value={soapAssessment}
                 onChange={e => setSoapAssessment(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 text-slate-900 dark:text-white"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 text-[#122620] dark:text-white"
               />
             </div>
             <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">P - Plan & Management Instructions</label>
+              <label className="block font-bold text-[#122620] dark:text-slate-300 mb-1">P - Plan & Management Instructions</label>
               <textarea
                 rows={3}
                 value={soapPlan}
                 onChange={e => setSoapPlan(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 text-slate-900 dark:text-white"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 text-[#122620] dark:text-white"
               />
             </div>
           </div>
 
           {/* Rx Prescription Manager */}
-          <div className="space-y-3 pt-3 border-t dark:border-slate-800">
+          <div className="space-y-3 pt-3 border-t dark:border-white/10">
             <div className="flex items-center justify-between">
-              <h4 className="font-extrabold text-slate-900 dark:text-white">Rx Electronic Prescription</h4>
+              <h4 className="font-extrabold text-[#122620] dark:text-white">Rx Electronic Prescription</h4>
               <button
                 type="button"
                 onClick={handleAddRxRow}
-                className="px-3 py-1 rounded-lg bg-cyan-500/10 text-[#00d9ff] font-bold text-xs flex items-center gap-1"
+                className="px-3 py-1 rounded-lg bg-[#00cb87]/10 text-[#00cb87] font-bold text-xs flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add Medication
               </button>
             </div>
 
-            {prescriptions.map((rx, i) => (
-              <div key={rx.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20">
+            {prescriptions.map((rx) => (
+              <div key={rx.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20">
                 <input
                   type="text"
                   placeholder="Medication Name"
@@ -318,13 +338,13 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
             ))}
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t dark:border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t dark:border-white/10">
             <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl text-slate-400">
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#0284c7] to-[#00d9ff] text-slate-950 font-black shadow-lg shadow-cyan-500/20"
+              className="px-6 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black shadow-lg"
             >
               Save SOAP Record & Rx
             </button>

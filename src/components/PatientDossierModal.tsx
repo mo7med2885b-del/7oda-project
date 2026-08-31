@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useClinic } from '../context/ClinicContext';
 import { printInvoice } from '../utils/pdfGenerator';
-import { X, Calendar, FileText, DollarSign, Printer, AlertTriangle, Shield, Upload, File } from 'lucide-react';
+import { X, Calendar, FileText, DollarSign, Printer, AlertTriangle, Upload, File, Sparkles } from 'lucide-react';
 
 interface PatientDossierModalProps {
   patientId: string;
   onClose: () => void;
   onOpenSoapEditor: (patientId: string, appointmentId?: string) => void;
+  onOpenAiPrompt?: (prompt: string) => void;
 }
 
-export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patientId, onClose, onOpenSoapEditor }) => {
+export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patientId, onClose, onOpenSoapEditor, onOpenAiPrompt }) => {
   const { getPatientById, getMedicalRecordsByPatient, getInvoicesByPatient, appointments } = useClinic();
 
   const patient = getPatientById(patientId);
@@ -19,8 +20,8 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
 
   const [activeTab, setActiveTab] = useState<'visits' | 'prescriptions' | 'billing' | 'labs'>('visits');
   const [labFiles, setLabFiles] = useState<{ id: string; name: string; date: string; size: string }[]>([
-    { id: 'lab-1', name: 'Comprehensive Blood Count & Lipid Panel.pdf', date: '2026-08-15', size: '1.2 MB' },
-    { id: 'lab-2', name: 'Echocardiogram Diagnostic Scan.pdf', date: '2026-07-20', size: '3.4 MB' }
+    { id: 'lab-1', name: 'Comprehensive Blood Count & Hormonal Panel.pdf', date: '2026-08-15', size: '1.2 MB' },
+    { id: 'lab-2', name: 'Pelvic Ultrasonography Report.pdf', date: '2026-07-20', size: '3.4 MB' }
   ]);
 
   if (!patient) return null;
@@ -40,13 +41,20 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
     }
   };
 
+  const handleAiAnalysis = () => {
+    if (!onOpenAiPrompt) return;
+    const prompt = `قم بإجراء تحليل كلينيكي شامل ومباشر لملف المريضة:\n• الاسم: ${patient.full_name}\n• السن: ${patient.age} سنة (${patient.gender})\n• فصيلة الدم: ${patient.blood_type}\n• التنبيهات والحساسية: ${patient.allergies || 'لا يوجد'}\n• ملخص الزيارات السابقة: ${records.length} زيارات مسجلة بالروشتات والتشخيصات.\nأعطني أهم التوصيات الطبية والخطوات القادمة للمتابعة.`;
+    onOpenAiPrompt(prompt);
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl rounded-2xl dark:bg-[#00182e] bg-white border dark:border-[#00d9ff]/30 border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-4xl rounded-2xl dark:bg-[#00261c] bg-[#f5f2eb] border dark:border-[#00cb87]/30 border-[#e3ded5] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-6 bg-slate-900 text-white flex items-center justify-between border-b border-[#00d9ff]/20">
+        <div className="p-6 bg-[#001c15] text-white flex items-center justify-between border-b border-[#00cb87]/20">
           <div>
-            <div className="text-xs text-[#00d9ff] font-bold uppercase tracking-wider">
+            <div className="text-xs text-[#00cb87] font-bold uppercase tracking-wider">
               Patient Electronic Health Record (EHR) Dossier
             </div>
             <h2 className="text-2xl font-black">{patient.full_name}</h2>
@@ -54,9 +62,20 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
               National ID: {patient.national_id} | Phone: {patient.phone} | Age: {patient.age}y ({patient.gender}) | Blood: {patient.blood_type}
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-3">
+            {onOpenAiPrompt && (
+              <button
+                onClick={handleAiAnalysis}
+                className="px-3.5 py-2 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow-lg transition flex items-center gap-1.5"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>تحليل الملف بالذكاء الاصطناعي</span>
+              </button>
+            )}
+            <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         {/* Medical Alert Banner if exists */}
@@ -68,11 +87,11 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
         )}
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-4 px-6 pt-4 border-b dark:border-slate-800 border-slate-200 text-xs font-bold">
+        <div className="flex items-center gap-4 px-6 pt-4 border-b dark:border-white/10 border-[#e3ded5] text-xs font-bold">
           <button
             onClick={() => setActiveTab('visits')}
             className={`pb-3 border-b-2 flex items-center gap-2 ${
-              activeTab === 'visits' ? 'border-[#00d9ff] text-[#00d9ff]' : 'border-transparent text-slate-400'
+              activeTab === 'visits' ? 'border-[#00cb87] text-[#00cb87]' : 'border-transparent text-slate-500'
             }`}
           >
             <Calendar className="w-4 h-4" />
@@ -82,7 +101,7 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
           <button
             onClick={() => setActiveTab('prescriptions')}
             className={`pb-3 border-b-2 flex items-center gap-2 ${
-              activeTab === 'prescriptions' ? 'border-[#00d9ff] text-[#00d9ff]' : 'border-transparent text-slate-400'
+              activeTab === 'prescriptions' ? 'border-[#00cb87] text-[#00cb87]' : 'border-transparent text-slate-500'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -92,7 +111,7 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
           <button
             onClick={() => setActiveTab('billing')}
             className={`pb-3 border-b-2 flex items-center gap-2 ${
-              activeTab === 'billing' ? 'border-[#00d9ff] text-[#00d9ff]' : 'border-transparent text-slate-400'
+              activeTab === 'billing' ? 'border-[#00cb87] text-[#00cb87]' : 'border-transparent text-slate-500'
             }`}
           >
             <DollarSign className="w-4 h-4" />
@@ -102,7 +121,7 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
           <button
             onClick={() => setActiveTab('labs')}
             className={`pb-3 border-b-2 flex items-center gap-2 ${
-              activeTab === 'labs' ? 'border-[#00d9ff] text-[#00d9ff]' : 'border-transparent text-slate-400'
+              activeTab === 'labs' ? 'border-[#00cb87] text-[#00cb87]' : 'border-transparent text-slate-500'
             }`}
           >
             <File className="w-4 h-4" />
@@ -116,25 +135,25 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
           {activeTab === 'visits' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="font-bold text-slate-900 dark:text-white">Chronological Encounters</h4>
+                <h4 className="font-bold text-[#122620] dark:text-white">Chronological Encounters</h4>
                 <button
                   onClick={() => onOpenSoapEditor(patient.id)}
-                  className="px-3 py-1.5 rounded-xl bg-[#00d9ff] text-slate-950 font-extrabold text-xs"
+                  className="px-3 py-1.5 rounded-xl bg-[#00473e] text-white font-extrabold text-xs hover:bg-[#003831]"
                 >
                   + Add New SOAP Encounter
                 </button>
               </div>
 
               {records.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 border border-dashed rounded-xl dark:border-slate-800">
+                <div className="p-8 text-center text-slate-400 border border-dashed rounded-xl dark:border-[#00cb87]/20">
                   No SOAP clinical records added yet.
                 </div>
               ) : (
                 records.map(rec => (
-                  <div key={rec.id} className="p-4 rounded-xl dark:bg-[#00101f] bg-slate-50 border dark:border-[#00d9ff]/20 border-slate-200 space-y-3">
-                    <div className="flex items-center justify-between border-b dark:border-slate-800 border-slate-200 pb-2">
-                      <span className="font-mono text-[#00d9ff] font-bold">{rec.created_at.split('T')[0]}</span>
-                      <span className="font-bold dark:text-white text-slate-900">{rec.diagnosis}</span>
+                  <div key={rec.id} className="p-4 rounded-xl dark:bg-[#001c15] bg-white border dark:border-[#00cb87]/20 border-[#e3ded5] space-y-3">
+                    <div className="flex items-center justify-between border-b dark:border-white/10 border-[#e3ded5] pb-2">
+                      <span className="font-mono text-[#00cb87] font-bold">{rec.created_at.split('T')[0]}</span>
+                      <span className="font-bold dark:text-white text-[#122620]">{rec.diagnosis}</span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
@@ -164,17 +183,17 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
           {/* Tab 2: Prescriptions */}
           {activeTab === 'prescriptions' && (
             <div className="space-y-3">
-              <h4 className="font-bold text-slate-900 dark:text-white">Prescription Log</h4>
+              <h4 className="font-bold text-[#122620] dark:text-white">Prescription Log</h4>
               {records.flatMap(r => r.prescription_json || []).length === 0 ? (
-                <div className="p-8 text-center text-slate-400 border border-dashed rounded-xl dark:border-slate-800">
+                <div className="p-8 text-center text-slate-400 border border-dashed rounded-xl dark:border-[#00cb87]/20">
                   No active prescriptions recorded.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {records.flatMap(r =>
                     (r.prescription_json || []).map(p => (
-                      <div key={p.id} className="p-3 rounded-xl dark:bg-[#00101f] bg-slate-50 border border-slate-200 dark:border-[#00d9ff]/20">
-                        <div className="font-bold text-[#00d9ff] text-sm">{p.medication} ({p.dosage})</div>
+                      <div key={p.id} className="p-3 rounded-xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/20">
+                        <div className="font-bold text-[#00cb87] text-sm">{p.medication} ({p.dosage})</div>
                         <div className="text-slate-400 mt-1">Frequency: {p.frequency} | Duration: {p.duration}</div>
                         <div className="text-slate-500 italic mt-1">{p.instructions}</div>
                       </div>
@@ -188,27 +207,27 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
           {/* Tab 3: Billing & Invoices */}
           {activeTab === 'billing' && (
             <div className="space-y-3">
-              <h4 className="font-bold text-slate-900 dark:text-white">Patient Invoices & Payment Ledger</h4>
+              <h4 className="font-bold text-[#122620] dark:text-white">Patient Invoices & Payment Ledger</h4>
               {invoices.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 border border-dashed rounded-xl dark:border-slate-800">
+                <div className="p-8 text-center text-slate-400 border border-dashed rounded-xl dark:border-[#00cb87]/20">
                   No billing invoices issued for this patient.
                 </div>
               ) : (
                 <div className="space-y-2">
                   {invoices.map(inv => (
-                    <div key={inv.id} className="p-3.5 rounded-xl dark:bg-[#00101f] bg-slate-50 border border-slate-200 dark:border-[#00d9ff]/20 flex items-center justify-between">
+                    <div key={inv.id} className="p-3.5 rounded-xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/20 flex items-center justify-between">
                       <div>
-                        <div className="font-mono font-bold text-[#00d9ff]">{inv.invoice_number}</div>
+                        <div className="font-mono font-bold text-[#00cb87]">{inv.invoice_number}</div>
                         <div className="text-slate-400 text-[10px]">Issued: {inv.created_at.split('T')[0]} | Method: {inv.payment_method}</div>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-right font-mono">
-                          <div className="font-bold text-slate-900 dark:text-white">EGP {inv.total_amount.toFixed(2)}</div>
+                          <div className="font-bold text-[#122620] dark:text-white">EGP {inv.total_amount.toFixed(2)}</div>
                           <div className="text-[10px] text-emerald-500 font-bold">{inv.payment_status}</div>
                         </div>
                         <button
                           onClick={() => printInvoice(inv)}
-                          className="p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white hover:text-[#00d9ff]"
+                          className="p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white hover:text-[#00cb87]"
                           title="Print Official Branded PDF Invoice"
                         >
                           <Printer className="w-4 h-4" />
@@ -225,9 +244,9 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
           {activeTab === 'labs' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="font-bold text-slate-900 dark:text-white">Lab Diagnostics & Scans</h4>
-                <label className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 font-bold text-slate-900 dark:text-white hover:text-[#00d9ff] cursor-pointer flex items-center gap-1.5">
-                  <Upload className="w-4 h-4 text-[#00d9ff]" />
+                <h4 className="font-bold text-[#122620] dark:text-white">Lab Diagnostics & Scans</h4>
+                <label className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/20 font-bold text-[#122620] dark:text-white hover:text-[#00cb87] cursor-pointer flex items-center gap-1.5">
+                  <Upload className="w-4 h-4 text-[#00cb87]" />
                   <span>Upload Document / Lab PDF</span>
                   <input type="file" onChange={handleFileUpload} className="hidden" accept=".pdf,.png,.jpg,.jpeg" />
                 </label>
@@ -235,17 +254,17 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
 
               <div className="space-y-2">
                 {labFiles.map(file => (
-                  <div key={file.id} className="p-3 rounded-xl dark:bg-[#00101f] bg-slate-50 border border-slate-200 dark:border-[#00d9ff]/20 flex items-center justify-between">
+                  <div key={file.id} className="p-3 rounded-xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <File className="w-5 h-5 text-[#00d9ff]" />
+                      <File className="w-5 h-5 text-[#00cb87]" />
                       <div>
-                        <div className="font-bold text-slate-900 dark:text-white">{file.name}</div>
+                        <div className="font-bold text-[#122620] dark:text-white">{file.name}</div>
                         <div className="text-slate-400 text-[10px]">Uploaded: {file.date} | Size: {file.size}</div>
                       </div>
                     </div>
                     <button
                       onClick={() => alert(`Opening preview for document: ${file.name}`)}
-                      className="px-3 py-1 rounded-lg bg-cyan-500/10 text-[#00d9ff] font-bold text-xs"
+                      className="px-3 py-1 rounded-lg bg-[#00cb87]/10 text-[#00cb87] font-bold text-xs"
                     >
                       View Report
                     </button>
