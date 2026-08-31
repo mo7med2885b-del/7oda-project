@@ -67,6 +67,15 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
   // Dynamic 14-Day Selector Generation (Starts from Sunday of the current week)
   const [y, m, dayNum] = currentDate.split('-').map(Number);
   const currD = new Date(y, m - 1, dayNum); 
+  
+  const shiftDateByDays = (days: number) => {
+    const d = new Date(y, m - 1, dayNum + days);
+    setCurrentDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+  };
+
+  const currentMonthNameAr = currD.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
+  const currentMonthNameEn = currD.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
   const dayOfWeek = currD.getDay(); // 0 is Sunday
   const startD = new Date(y, m - 1, dayNum - dayOfWeek);
 
@@ -211,12 +220,12 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#00cb87] text-slate-950 flex items-center justify-center font-mono font-black text-lg shadow">
-            31
+            {currD.getDate()}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg sm:text-xl font-black text-[#122620] dark:text-white font-serif">
-                {lang === 'ar' ? 'أغسطس – سبتمبر 2026' : 'August – September 2026'}
+                {lang === 'ar' ? currentMonthNameAr : currentMonthNameEn}
               </h2>
               <span className="px-2.5 py-0.5 rounded-full bg-[#00cb87]/20 text-[#00cb87] font-mono text-[10px] font-bold">
                 GMT+03:00 (Cairo)
@@ -276,10 +285,10 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
           {/* Mini Calendar Widget */}
           <div className="space-y-3">
             <div className="flex items-center justify-between text-xs font-bold">
-              <span className="text-[#122620] dark:text-white font-mono">{lang === 'ar' ? 'أغسطس 2026' : 'August 2026'}</span>
+              <span className="text-[#122620] dark:text-white font-mono">{lang === 'ar' ? currentMonthNameAr : currentMonthNameEn}</span>
               <div className="flex items-center gap-1">
-                <button className="p-1 hover:bg-[#ece7de] dark:hover:bg-white/10 rounded">‹</button>
-                <button className="p-1 hover:bg-[#ece7de] dark:hover:bg-white/10 rounded">›</button>
+                <button type="button" onClick={() => shiftDateByDays(-7)} className="p-1 hover:bg-[#ece7de] dark:hover:bg-white/10 rounded transition">‹</button>
+                <button type="button" onClick={() => shiftDateByDays(7)} className="p-1 hover:bg-[#ece7de] dark:hover:bg-white/10 rounded transition">›</button>
               </div>
             </div>
 
