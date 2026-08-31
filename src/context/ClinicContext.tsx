@@ -38,6 +38,7 @@ interface ClinicContextType {
 
   // Appointment CRUD
   addAppointment: (apt: Omit<Appointment, 'id' | 'created_at'>) => Appointment;
+  updateAppointment: (id: string, updated: Partial<Appointment>) => void;
   updateAppointmentStatus: (id: string, status: AppointmentStatus) => void;
   rescheduleAppointment: (id: string, date: string, startTime: string, endTime: string) => boolean;
 
@@ -221,6 +222,11 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return newApt;
   };
 
+  const updateAppointment = (id: string, updated: Partial<Appointment>) => {
+    setAppointments(prev => prev.map(a => (a.id === id ? { ...a, ...updated } : a)));
+    logAudit('Update Appointment Details', 'Appointment', id, updated);
+  };
+
   const updateAppointmentStatus = (id: string, status: AppointmentStatus) => {
     setAppointments(prev => prev.map(a => (a.id === id ? { ...a, status } : a)));
     logAudit('Update Appointment Status', 'Appointment', id, { status });
@@ -340,6 +346,7 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         updatePatient,
         deletePatient,
         addAppointment,
+        updateAppointment,
         updateAppointmentStatus,
         rescheduleAppointment,
         addMedicalRecord,

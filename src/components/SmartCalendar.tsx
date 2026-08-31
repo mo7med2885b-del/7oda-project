@@ -31,12 +31,14 @@ interface SmartCalendarProps {
 }
 
 export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal }) => {
-  const { appointments, patients, addPatient, addAppointment, updateAppointmentStatus, addInvoice, t, lang } = useClinic();
+  const { appointments, patients, addPatient, addAppointment, updateAppointment, updateAppointmentStatus, addInvoice, t, lang } = useClinic();
 
   const [currentDate, setCurrentDate] = useState<string>('2026-08-31');
   const [calendarView, setCalendarView] = useState<'week' | 'day' | 'month' | 'list'>('week');
   const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>('all');
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedAppointmentForDetails, setSelectedAppointmentForDetails] = useState<Appointment | null>(null);
+  const [medPriceEditVal, setMedPriceEditVal] = useState('');
 
   // New Booking State
   const [isCreatingNewPatient, setIsCreatingNewPatient] = useState(false);
@@ -94,10 +96,11 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
   const netPayable = Math.max(0, feeAmount - discountAmount);
 
   // Check if a time slot on aptDate is already booked
-  const isTimeSlotBooked = (dateStr: string, slotStr: string) => {
+  const getAppointmentForSlot = (dateStr: string, slotStr: string) => {
     const slotHour = slotStr.split(':')[0];
-    return appointments.some(apt => apt.appointment_date === dateStr && apt.start_time.startsWith(slotHour));
+    return appointments.find(apt => apt.appointment_date === dateStr && apt.start_time.startsWith(slotHour));
   };
+  const isTimeSlotBooked = (dateStr: string, slotStr: string) => !!getAppointmentForSlot(dateStr, slotStr);
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -605,17 +608,24 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                         <button
                           key={slot}
                           type="button"
-                          disabled={booked}
                           onClick={() => {
-                            setStartTime(slot);
-                            // Auto estimate end time 30 mins later
-                            const hourNum = parseInt(slot.split(':')[0], 10);
-                            const nextHour = hourNum === 12 ? 1 : hourNum + 1;
-                            setEndTime(`${nextHour < 10 ? '0' + nextHour : nextHour}:30 ${slot.split(' ')[1]}`);
+                            if (booked) {
+                              const apt = getAppointmentForSlot(aptDate, slot);
+                              if (apt) {
+                                setSelectedAppointmentForDetails(apt);
+                                setMedPriceEditVal(apt.medicine_price_details || '');
+                              }
+                            } else {
+                              setStartTime(slot);
+                              // Auto estimate end time 30 mins later
+                              const hourNum = parseInt(slot.split(':')[0], 10);
+                              const nextHour = hourNum === 12 ? 1 : hourNum + 1;
+                              setEndTime(`${nextHour < 10 ? '0' + nextHour : nextHour}:30 ${slot.split(' ')[1]}`);
+                            }
                           }}
                           className={`p-2 rounded-xl border text-[11px] font-mono font-bold transition flex items-center justify-between ${
                             booked
-                              ? 'bg-rose-500/10 border-rose-400/30 text-rose-600 dark:text-rose-400 cursor-not-allowed opacity-75'
+                              ? 'bg-rose-500/10 border-rose-400/30 text-rose-600 dark:text-rose-400 cursor-pointer hover:bg-rose-500/20'
                               : isSelected
                               ? 'bg-[#00473e] text-white border-[#00473e] shadow-lg dark:bg-[#00cb87] dark:text-slate-950 scale-105'
                               : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 hover:bg-[#00473e] hover:text-white'
@@ -739,6 +749,81 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {selectedAppointmentForDetails && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg bg-[#f5f2eb] dark:bg-[#00261c] border-2 border-[#00473e]/20 dark:border-[#00cb87]/30 rounded-3xl p-6 shadow-2xl relative space-y-6 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setSelectedAppointmentForDetails(null)}
+              className="absolute top-4 right-4 p-2 bg-white dark:bg-[#001c15] rounded-full text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-black text-[#122620] dark:text-white flex items-center gap-2">
+              <UserPlus className="w-6 h-6 text-[#00cb87]" />
+              <span>تفاصيل الحجز والأدوية</span>
+            </h2>
+            
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-white dark:bg-[#001c15] shadow-sm space-y-2 text-sm font-bold text-slate-800 dark:text-slate-200">
+                <div className="flex justify-between border-b border-slate-100 dark:border-white/10 pb-2">
+                  <span className="text-slate-500">المريض:</span>
+                  <span className="text-[#00cb87]">{selectedAppointmentForDetails.patient_name}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-100 dark:border-white/10 pb-2">
+                  <span className="text-slate-500">التاريخ والوقت:</span>
+                  <span className="font-mono">{selectedAppointmentForDetails.appointment_date} | {selectedAppointmentForDetails.start_time}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-100 dark:border-white/10 pb-2">
+                  <span className="text-slate-500">نوع الكشف:</span>
+                  <span>{selectedAppointmentForDetails.type}</span>
+                </div>
+                <div className="flex flex-col gap-1 pt-1">
+                  <span className="text-slate-500">سبب الزيارة (الرسوم):</span>
+                  <span className="text-xs leading-relaxed">{selectedAppointmentForDetails.reason}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-slate-700 dark:text-slate-300 font-extrabold flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-[#00cb87]" />
+                  <span>تفاصيل الأدوية وأسعارها (Medicine & Price)</span>
+                </label>
+                <textarea
+                  value={medPriceEditVal}
+                  onChange={e => setMedPriceEditVal(e.target.value)}
+                  placeholder="مثال: حقنة تفجيرية 500 ج.م، منشط 250 ج.م..."
+                  rows={4}
+                  className="w-full p-3 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-bold placeholder-slate-400 focus:ring-2 focus:ring-[#00cb87] outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e3ded5] dark:border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setSelectedAppointmentForDetails(null)}
+                  className="px-4 py-2 text-slate-400 font-bold"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateAppointment(selectedAppointmentForDetails.id, {
+                      medicine_price_details: medPriceEditVal
+                    });
+                    setSelectedAppointmentForDetails(null);
+                  }}
+                  className="px-6 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-white font-black shadow-lg flex items-center gap-2 transition"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>حفظ التعديلات</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

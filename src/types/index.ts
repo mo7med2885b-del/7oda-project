@@ -30,6 +30,7 @@ export interface Appointment {
   reason: string;
   type: string;
   ai_brief?: string;
+  medicine_price_details?: string;
   created_at: string;
 }
 
