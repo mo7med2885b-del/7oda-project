@@ -122,53 +122,65 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onOpenNewInvoice, on
       </div>
 
       {/* REVENUE OVERSIGHT & AUDIT SECTION */}
-      <div className="p-6 rounded-2xl bg-white dark:bg-[#00182e]/80 border-2 border-amber-200 dark:border-amber-900/50 shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-black text-amber-600 dark:text-amber-500 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5" />
-            {lang === 'ar' ? 'تدقيق الإيرادات والخصومات (Revenue Oversight)' : 'Revenue Oversight & Audit'}
-          </h3>
-          <div className="flex gap-4 text-xs font-bold font-mono">
-            <div className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-              <span className="block text-[9px] uppercase text-slate-400">Expected (بدون خصم)</span>
-              EGP {expectedRevenue.toLocaleString()}
+      <div className="p-6 rounded-2xl bg-white dark:bg-[#00182e]/80 border-2 border-amber-200 dark:border-amber-900/50 shadow-sm space-y-6">
+        <h3 className="text-lg font-black text-amber-600 dark:text-amber-500 flex items-center gap-2">
+          <AlertTriangle className="w-5 h-5" />
+          {lang === 'ar' ? 'تدقيق الإيرادات والخصومات (Revenue Oversight)' : 'Revenue Oversight & Audit'}
+        </h3>
+        
+        <div className="flex flex-col md:flex-row gap-6 items-center">
+          {/* PIE CHART / RING */}
+          <div className="relative w-32 h-32 rounded-full shrink-0 flex items-center justify-center shadow-inner" 
+               style={{ background: `conic-gradient(#10b981 ${expectedRevenue > 0 ? ((expectedRevenue - totalDiscountsGiven) / expectedRevenue) * 100 : 100}%, #f43f5e 0)` }}>
+            <div className="w-24 h-24 bg-white dark:bg-[#00182e] rounded-full flex items-center justify-center flex-col shadow-sm">
+              <span className="text-xl font-black text-slate-800 dark:text-white">
+                {expectedRevenue > 0 ? Math.round(((expectedRevenue - totalDiscountsGiven) / expectedRevenue) * 100) : 100}%
+              </span>
+              <span className="text-[9px] text-slate-500 uppercase font-bold text-center leading-tight mt-0.5">Actual<br/>Collected</span>
             </div>
-            <div className="px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50">
-              <span className="block text-[9px] uppercase">Total Discrepancy / Discounts</span>
-              - EGP {totalDiscountsGiven.toLocaleString()}
-            </div>
+          </div>
+          
+          {/* STATS */}
+          <div className="flex-1 space-y-3 w-full">
+             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                   <p className="text-xs text-slate-500 uppercase font-bold mb-1">Expected Revenue (بدون خصم)</p>
+                   <p className="text-2xl font-black font-mono text-slate-800 dark:text-white">EGP {expectedRevenue.toLocaleString()}</p>
+                </div>
+                <div className="text-right">
+                   <p className="text-xs text-slate-500 uppercase font-bold mb-1">Actual Collected (الفعلي)</p>
+                   <p className="text-2xl font-black font-mono text-emerald-500">EGP {(expectedRevenue - totalDiscountsGiven).toLocaleString()}</p>
+                </div>
+             </div>
+             {totalDiscountsGiven > 0 ? (
+               <div className="p-3 bg-rose-50 dark:bg-rose-900/20 rounded-xl border border-rose-100 dark:border-rose-900/30 flex justify-between items-center">
+                 <span className="text-rose-600 dark:text-rose-400 font-bold text-sm">Total Discrepancy (Discounts)</span>
+                 <span className="text-rose-600 dark:text-rose-400 font-black font-mono text-lg">- EGP {totalDiscountsGiven.toLocaleString()}</span>
+               </div>
+             ) : (
+               <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
+                 <CheckCircle className="w-4 h-4" />
+                 <span>لا توجد أي خصومات مسجلة. الإيرادات الفعلية تطابق المتوقعة تماماً.</span>
+               </div>
+             )}
           </div>
         </div>
 
-        {discountedInvoices.length > 0 ? (
-          <div className="overflow-x-auto border border-amber-100 dark:border-amber-900/30 rounded-xl">
-            <table className="w-full text-left rtl:text-right border-collapse">
-              <thead>
-                <tr className="bg-amber-50/50 dark:bg-amber-900/10 border-b border-amber-100 dark:border-amber-900/30 text-[10px] font-black text-amber-700 dark:text-amber-500 uppercase tracking-wider">
-                  <th className="py-2 px-3">Invoice</th>
-                  <th className="py-2 px-3">Patient</th>
-                  <th className="py-2 px-3 text-center">Expected Price</th>
-                  <th className="py-2 px-3 text-center">Discount</th>
-                  <th className="py-2 px-3">Discount Reason (Justification)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-amber-50 dark:divide-amber-900/20 text-xs">
-                {discountedInvoices.map(inv => (
-                  <tr key={inv.id} className="hover:bg-amber-50/30 dark:hover:bg-amber-900/10 transition">
-                    <td className="py-2 px-3 font-mono font-bold text-slate-700 dark:text-slate-300">{inv.invoice_number}</td>
-                    <td className="py-2 px-3 font-bold text-slate-900 dark:text-white">{inv.patient_name}</td>
-                    <td className="py-2 px-3 text-center font-mono font-bold text-slate-500 line-through">EGP {inv.total_amount.toFixed(2)}</td>
-                    <td className="py-2 px-3 text-center font-mono font-black text-rose-500">- EGP {inv.discount_amount?.toFixed(2)}</td>
-                    <td className="py-2 px-3 text-amber-800 dark:text-amber-400 font-bold bg-amber-50/50 dark:bg-amber-900/20">{inv.discount_reason || 'بدون سبب! (تحذير)'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center justify-center gap-2">
-            <CheckCircle className="w-4 h-4" />
-            <span>لا توجد أي خصومات مسجلة. الإيرادات الفعلية تطابق الإيرادات المتوقعة تماماً.</span>
+        {discountedInvoices.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            {discountedInvoices.map(inv => (
+              <div key={inv.id} className="p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-xl flex items-center justify-between">
+                <div className="flex-1 min-w-0 pr-2">
+                   <p className="font-bold text-slate-900 dark:text-white text-sm truncate">{inv.patient_name}</p>
+                   <p className="text-[10px] text-slate-500 font-mono">{inv.invoice_number}</p>
+                   <p className="text-[11px] font-bold text-amber-700 dark:text-amber-500 mt-1 truncate">Reason: {inv.discount_reason || 'بدون سبب! (تحذير)'}</p>
+                </div>
+                <div className="text-right shrink-0">
+                   <p className="text-[10px] text-slate-400 line-through font-mono">EGP {inv.total_amount}</p>
+                   <p className="text-sm font-black text-rose-500 font-mono">- {inv.discount_amount}</p>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
