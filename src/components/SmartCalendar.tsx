@@ -20,6 +20,8 @@ import {
   DollarSign,
   Tag,
   Receipt,
+  Check,
+  AlertCircle,
   X
 } from 'lucide-react';
 
@@ -49,8 +51,8 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
 
   // Appointment Form Fields
   const [aptDate, setAptDate] = useState(currentDate);
-  const [startTime, setStartTime] = useState('10:00');
-  const [endTime, setEndTime] = useState('10:30');
+  const [startTime, setStartTime] = useState('10:00 AM');
+  const [endTime, setEndTime] = useState('10:30 AM');
   const [visitType, setVisitType] = useState('ICSI Protocol');
   const [visitReason, setVisitReason] = useState('');
   const [selectedBranch, setSelectedBranch] = useState(doctorInfo.branches[0].id);
@@ -59,6 +61,9 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
   const [feeAmount, setFeeAmount] = useState<number>(500);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [discountReason, setDiscountReason] = useState<string>('');
+
+  // Slot Picker Pop-out State
+  const [showSlotPicker, setShowSlotPicker] = useState<boolean>(true);
 
   // Week Days Generation (Aug 30 - Sep 5, 2026)
   const weekDays = [
@@ -74,7 +79,7 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
   const timeSlots = [
     '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
     '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM',
-    '06:00 PM', '07:00 PM', '08:00 PM'
+    '06:00 PM', '07:00 PM'
   ];
 
   const filteredAppointments = appointments.filter(apt => {
@@ -83,6 +88,12 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
   });
 
   const netPayable = Math.max(0, feeAmount - discountAmount);
+
+  // Check if a time slot on aptDate is already booked
+  const isTimeSlotBooked = (dateStr: string, slotStr: string) => {
+    const slotHour = slotStr.split(':')[0];
+    return appointments.some(apt => apt.appointment_date === dateStr && apt.start_time.startsWith(slotHour));
+  };
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,7 +146,7 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
       type: visitType
     });
 
-    // Create Invoice if net payable > 0
+    // Create Invoice if net payable >= 0
     if (netPayable >= 0) {
       addInvoice({
         patient_id: patientIdToBook,
@@ -386,10 +397,10 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
         </div>
       </div>
 
-      {/* NEW APPOINTMENT MODAL (WITH QUICK NEW PATIENT CREATION & FINANCIAL DISCOUNT SECTION) */}
+      {/* NEW APPOINTMENT MODAL (WITH INTERACTIVE VISUAL SLOT PICKER: GREEN AVAILABLE / RED BOOKED) */}
       {showBookingModal && (
         <div className="fixed inset-0 z-50 bg-[#001c15]/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/40 shadow-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
+          <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/40 shadow-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#e3ded5] dark:border-white/10 pb-3">
               <h3 className="text-base sm:text-lg font-black text-[#122620] dark:text-white flex items-center gap-2">
                 <CalendarCheck className="w-5 h-5 text-[#00cb87]" />
@@ -516,17 +527,92 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">{lang === 'ar' ? 'تاريخ الكشف' : 'Date'}</label>
-                  <input
-                    type="date"
-                    required
-                    value={aptDate}
-                    onChange={e => setAptDate(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-mono"
-                  />
+              {/* INTERACTIVE POP-OUT / INLINE CALENDAR & TIME SLOT PICKER (GREEN = AVAILABLE / RED = BOOKED) */}
+              <div className="p-3.5 rounded-xl bg-[#001c15] border border-[#00cb87]/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-[#00cb87]">
+                    <CalendarIcon className="w-4 h-4 text-[#00cb87]" />
+                    <span>خريطة اختيار التاريخ والأوقات المتاحة</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[10px] font-bold">
+                    <span className="flex items-center gap-1 text-emerald-400">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> متاح (Green)
+                    </span>
+                    <span className="flex items-center gap-1 text-rose-400">
+                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> حجز سابق (Red)
+                    </span>
+                  </div>
                 </div>
+
+                {/* Day Buttons Selector */}
+                <div className="space-y-1">
+                  <label className="block text-[11px] text-slate-300 font-bold">اختر تاريخ اليوم:</label>
+                  <div className="grid grid-cols-7 gap-1 text-center">
+                    {weekDays.map(d => (
+                      <button
+                        key={d.dateStr}
+                        type="button"
+                        onClick={() => setAptDate(d.dateStr)}
+                        className={`p-1.5 rounded-xl border text-[10px] font-mono font-bold transition ${
+                          aptDate === d.dateStr
+                            ? 'bg-[#00cb87] text-slate-950 border-[#00cb87] shadow-md scale-105'
+                            : 'bg-[#00261c] text-slate-300 border-white/10 hover:border-[#00cb87]/40'
+                        }`}
+                      >
+                        <div className="text-[9px] uppercase">{d.dayNameAr}</div>
+                        <div className="text-xs font-black">{d.num}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Visual Time Slot Grid */}
+                <div className="space-y-1 pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between text-[11px] text-slate-300 font-bold">
+                    <span>اختر الوقت المحدد لليوم ({aptDate}):</span>
+                    <span className="text-[#00cb87] font-mono">المحدد: {startTime}</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
+                    {timeSlots.map(slot => {
+                      const booked = isTimeSlotBooked(aptDate, slot);
+                      const isSelected = startTime === slot;
+
+                      return (
+                        <button
+                          key={slot}
+                          type="button"
+                          disabled={booked}
+                          onClick={() => {
+                            setStartTime(slot);
+                            // Auto estimate end time 30 mins later
+                            const hourNum = parseInt(slot.split(':')[0], 10);
+                            const nextHour = hourNum === 12 ? 1 : hourNum + 1;
+                            setEndTime(`${nextHour < 10 ? '0' + nextHour : nextHour}:30 ${slot.split(' ')[1]}`);
+                          }}
+                          className={`p-2 rounded-xl border text-[11px] font-mono font-bold transition flex items-center justify-between ${
+                            booked
+                              ? 'bg-rose-500/15 border-rose-500/40 text-rose-400 cursor-not-allowed opacity-80'
+                              : isSelected
+                              ? 'bg-[#00cb87] text-slate-950 border-[#00cb87] shadow-lg scale-105'
+                              : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-[#00cb87] hover:text-slate-950'
+                          }`}
+                        >
+                          <span>{slot}</span>
+                          {booked ? (
+                            <span className="text-[9px] font-black bg-rose-500 text-white px-1 rounded">مشغول</span>
+                          ) : (
+                            <span className="text-[9px] font-black bg-emerald-500 text-slate-950 px-1 rounded">متاح</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">{lang === 'ar' ? 'الفرع' : 'Branch'}</label>
                   <select
@@ -538,18 +624,6 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                       <option key={b.id} value={b.id}>{lang === 'ar' ? b.city_ar : b.city_en}</option>
                     ))}
                   </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">وقت البداية</label>
-                  <input
-                    type="text"
-                    value={startTime}
-                    onChange={e => setStartTime(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-mono"
-                  />
                 </div>
                 <div>
                   <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">نوع الإجراء الطبي</label>
