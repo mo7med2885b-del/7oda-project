@@ -369,6 +369,10 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                           {slotAppointments.map(apt => (
                             <div
                               key={apt.id}
+                              onClick={() => {
+                                setSelectedAppointmentForDetails(apt);
+                                setMedPriceEditVal(apt.medicine_price_details || '');
+                              }}
                               className="p-2 rounded-xl bg-[#00473e] text-white shadow space-y-1 border border-[#00cb87]/40 hover:scale-105 transition cursor-pointer"
                             >
                               <div className="font-bold truncate text-[11px]">{apt.patient_name}</div>
@@ -395,7 +399,14 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                 </thead>
                 <tbody className="divide-y divide-[#e3ded5] dark:divide-white/10">
                   {filteredAppointments.map(apt => (
-                    <tr key={apt.id} className="hover:bg-[#ece7de]/40 dark:hover:bg-[#001c15]/40">
+                    <tr 
+                      key={apt.id} 
+                      onClick={() => {
+                        setSelectedAppointmentForDetails(apt);
+                        setMedPriceEditVal(apt.medicine_price_details || '');
+                      }}
+                      className="hover:bg-[#ece7de]/40 dark:hover:bg-[#001c15]/40 cursor-pointer"
+                    >
                       <td className="py-3 px-3 font-mono text-[#00473e] dark:text-[#00cb87] font-bold">{apt.start_time} - {apt.end_time}</td>
                       <td className="py-3 px-3 font-bold text-[#122620] dark:text-white">{apt.patient_name}</td>
                       <td className="py-3 px-3 text-slate-600 dark:text-slate-300">{apt.reason}</td>
