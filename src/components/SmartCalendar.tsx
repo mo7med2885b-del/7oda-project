@@ -806,7 +806,7 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                 <textarea
                   value={medPriceEditVal}
                   onChange={e => setMedPriceEditVal(e.target.value)}
-                  placeholder="مثال: حقنة تفجيرية 500 ج.م، منشط 250 ج.م..."
+                  placeholder="مثال: Gonal-F 300 IU (1500 ج.م), Ovitrelle 250 mcg (800 ج.م)..."
                   rows={4}
                   className="w-full p-3 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-bold placeholder-slate-400 focus:ring-2 focus:ring-[#00cb87] outline-none"
                 />
