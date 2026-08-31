@@ -9,7 +9,7 @@ export interface FeatherlessChatMessage {
 
 /**
  * FEATHERLESS AI CLIENT (OpenAI-compatible)
- * Model: deepseek-ai/DeepSeek-V4-Flash-0731
+ * Model: Qwen/Qwen3-8B
  * Base URL: https://api.featherless.ai/v1
  */
 export async function callFeatherlessAi(
@@ -25,7 +25,7 @@ export async function callFeatherlessAi(
       'Authorization': `Bearer ${activeKey.trim()}`
     },
     body: JSON.stringify({
-      model: 'deepseek-ai/DeepSeek-V4-Flash-0731',
+      model: 'Qwen/Qwen3-8B',
       messages,
       temperature: 0.7,
       max_tokens: 1000
