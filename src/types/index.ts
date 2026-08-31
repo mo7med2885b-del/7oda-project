@@ -15,7 +15,7 @@ export interface Patient {
   created_at: string;
 }
 
-export type AppointmentStatus = 'Waiting' | 'In Consultation' | 'Completed' | 'Cancelled' | 'No-Show';
+export type AppointmentStatus = 'Waiting' | 'In Consultation' | 'Completed' | 'Cancelled' | 'No-Show' | 'Scheduled';
 export type AppointmentType = 'Initial Assessment' | 'Follow-up' | 'Procedure' | 'Emergency';
 
 export interface Appointment {
@@ -28,7 +28,7 @@ export interface Appointment {
   end_time: string; // HH:MM
   status: AppointmentStatus;
   reason: string;
-  type: AppointmentType;
+  type: string;
   ai_brief?: string;
   created_at: string;
 }
@@ -54,14 +54,21 @@ export interface MedicalRecord {
   id: string;
   patient_id: string;
   appointment_id?: string;
-  chief_complaint: string;
+  doctor_id?: string;
+  chief_complaint?: string;
   diagnosis: string;
-  soap_subjective: string;
-  soap_objective: string;
-  soap_assessment: string;
-  soap_plan: string;
-  prescription_json: PrescriptionItem[];
-  vitals?: Vitals;
+  // Either SOAP fields or legacy fields
+  soap_subjective?: string;
+  soap_objective?: string;
+  soap_assessment?: string;
+  soap_plan?: string;
+  subjective?: string;
+  objective?: string;
+  assessment?: string;
+  plan?: string;
+  prescription_json?: PrescriptionItem[];
+  prescription?: Array<Record<string, string>>;
+  vitals?: Vitals | Record<string, string>;
   created_at: string;
 }
 
@@ -69,12 +76,13 @@ export type PaymentStatus = 'Draft' | 'Paid' | 'Partially Paid' | 'Overdue' | 'C
 export type PaymentMethod = 'Cash' | 'Credit Card' | 'Bank Transfer' | 'Insurance Split' | 'Multiple';
 
 export interface InvoiceItem {
-  id: string;
+  id?: string;
   invoice_id?: string;
   description: string;
   quantity: number;
   unit_price: number;
-  total_price: number;
+  total: number;
+  total_price?: number;
 }
 
 export interface Invoice {
@@ -83,16 +91,20 @@ export interface Invoice {
   patient_id: string;
   patient_name: string;
   appointment_id?: string;
-  subtotal: number;
-  discount: number;
-  tax: number;
+  issue_date?: string;
+  due_date?: string;
+  subtotal?: number;
+  discount?: number;
+  discount_amount?: number;
+  discount_reason?: string;
+  tax?: number;
   total_amount: number;
+  net_amount?: number;
   paid_amount: number;
   payment_status: PaymentStatus;
-  payment_method: PaymentMethod;
+  payment_method?: PaymentMethod;
   items: InvoiceItem[];
   created_at: string;
-  due_date: string;
 }
 
 export type ExpenseCategory =
@@ -107,13 +119,14 @@ export type ExpenseCategory =
 
 export interface Expense {
   id: string;
-  category: ExpenseCategory;
+  category: string;
   description: string;
   amount: number;
-  payment_method: string;
-  vendor: string;
+  payment_method?: string;
+  vendor?: string;
   receipt_url?: string;
-  expense_date: string; // YYYY-MM-DD
+  expense_date: string;
+  created_by?: string;
   created_at: string;
 }
 

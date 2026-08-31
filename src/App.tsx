@@ -18,59 +18,30 @@ import { PortalSelectorModal } from './components/PortalSelectorModal';
 import { FeatherlessAiChatDrawer } from './components/FeatherlessAiChatDrawer';
 import { Sparkles } from 'lucide-react';
 
+// Map URL pathname → (portalMode, tab)
+const PATH_MAP: Record<string, { mode: 'admin' | 'patient'; tab: NavTab }> = {
+  '/patient':    { mode: 'patient',  tab: 'dashboard' },
+  '/dashboard':  { mode: 'admin',    tab: 'dashboard' },
+  '/admin':      { mode: 'admin',    tab: 'dashboard' },
+  '/calendar':   { mode: 'admin',    tab: 'calendar' },
+  '/patients':   { mode: 'admin',    tab: 'patients' },
+  '/financials': { mode: 'admin',    tab: 'financials' },
+  '/audit':      { mode: 'admin',    tab: 'audit' },
+};
+
+const navigate = (path: string) => {
+  window.history.pushState(null, '', path);
+};
+
 const ClinicAppContent: React.FC = () => {
   const { portalMode, setPortalMode } = useClinic();
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
 
-  // URL Hash Syncing: Sync URL Hash with active portal & section tab
-  useEffect(() => {
-    const syncStateFromHash = () => {
-      const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (hash === 'patient' || hash === 'patients-portal') {
-        setPortalMode('patient');
-      } else if (hash === 'calendar') {
-        setPortalMode('admin');
-        setActiveTab('calendar');
-      } else if (hash === 'patients') {
-        setPortalMode('admin');
-        setActiveTab('patients');
-      } else if (hash === 'financials' || hash === 'finance') {
-        setPortalMode('admin');
-        setActiveTab('financials');
-      } else if (hash === 'audit') {
-        setPortalMode('admin');
-        setActiveTab('audit');
-      } else if (hash === 'dashboard' || hash === 'admin') {
-        setPortalMode('admin');
-        setActiveTab('dashboard');
-      } else if (hash === 'doctor_profile') {
-        setPortalMode('admin');
-        setActiveTab('doctor_profile');
-      }
-    };
-
-    syncStateFromHash();
-    window.addEventListener('hashchange', syncStateFromHash);
-    return () => window.removeEventListener('hashchange', syncStateFromHash);
-  }, [setPortalMode]);
-
-  // Sync URL hash dynamically whenever portalMode or activeTab changes
-  useEffect(() => {
-    if (portalMode === 'patient') {
-      if (window.location.hash !== '#patient') {
-        window.history.replaceState(null, '', '#patient');
-      }
-    } else {
-      const targetHash = `#${activeTab}`;
-      if (window.location.hash !== targetHash) {
-        window.history.replaceState(null, '', targetHash);
-      }
-    }
-  }, [portalMode, activeTab]);
-
   // Modals state
   const [showPortalSelectorModal, setShowPortalSelectorModal] = useState<boolean>(() => {
-    return !localStorage.getItem('clinic_portal_mode') && !window.location.hash;
+    const path = window.location.pathname;
+    const hasRoute = Object.keys(PATH_MAP).includes(path);
+    return !localStorage.getItem('clinic_portal_mode') && !hasRoute;
   });
 
   const [dossierPatientId, setDossierPatientId] = useState<string | null>(null);
@@ -79,28 +50,47 @@ const ClinicAppContent: React.FC = () => {
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showAiAdvisorModal, setShowAiAdvisorModal] = useState(false);
   const [triagePatientId, setTriagePatientId] = useState<string | null>(null);
-
-  // AI Drawer State with Prompt Support
   const [aiDrawerState, setAiDrawerState] = useState<{ isOpen: boolean; initialPrompt: string | null }>({
     isOpen: false,
     initialPrompt: null
   });
 
+  // Sync state from URL pathname on load & popstate (back/forward)
+  useEffect(() => {
+    const syncFromPath = () => {
+      const path = window.location.pathname;
+      const route = PATH_MAP[path];
+      if (route) {
+        setPortalMode(route.mode);
+        setActiveTab(route.tab);
+      }
+    };
+    syncFromPath();
+    window.addEventListener('popstate', syncFromPath);
+    return () => window.removeEventListener('popstate', syncFromPath);
+  }, [setPortalMode]);
+
+  // Update URL whenever portalMode or activeTab changes
+  useEffect(() => {
+    const targetPath = portalMode === 'patient' ? '/patient' : `/${activeTab}`;
+    if (window.location.pathname !== targetPath) {
+      navigate(targetPath);
+    }
+  }, [portalMode, activeTab]);
+
   const handleOpenAiPrompt = (promptText: string) => {
-    setAiDrawerState({
-      isOpen: true,
-      initialPrompt: promptText
-    });
+    setAiDrawerState({ isOpen: true, initialPrompt: promptText });
   };
 
   const handleSelectPortalMode = (mode: 'admin' | 'patient') => {
     setPortalMode(mode);
     setShowPortalSelectorModal(false);
-    if (mode === 'patient') {
-      window.location.hash = '#patient';
-    } else {
-      window.location.hash = `#${activeTab}`;
-    }
+    navigate(mode === 'patient' ? '/patient' : '/dashboard');
+  };
+
+  const switchTab = (tab: NavTab) => {
+    setActiveTab(tab);
+    navigate(`/${tab}`);
   };
 
   return (
@@ -114,14 +104,10 @@ const ClinicAppContent: React.FC = () => {
       <Header />
 
       <div className="flex flex-1">
-        {/* Render Sidebar only in Admin Mode */}
         {portalMode === 'admin' && (
           <Sidebar
             activeTab={activeTab}
-            setActiveTab={tab => {
-              setActiveTab(tab);
-              window.location.hash = `#${tab}`;
-            }}
+            setActiveTab={switchTab}
             onOpenAiFinancialAdvisor={() => setShowAiAdvisorModal(true)}
           />
         )}
@@ -133,10 +119,7 @@ const ClinicAppContent: React.FC = () => {
             <>
               {activeTab === 'dashboard' && (
                 <ExecutiveDashboard
-                  onOpenNewAppointment={() => {
-                    setActiveTab('calendar');
-                    window.location.hash = '#calendar';
-                  }}
+                  onOpenNewAppointment={() => switchTab('calendar')}
                   onOpenNewInvoice={() => setShowInvoiceModal(true)}
                   onOpenNewExpense={() => setShowExpenseModal(true)}
                   onOpenSoapNote={(patientId, appointmentId) => setSoapModalData({ patientId, appointmentId })}
@@ -144,9 +127,7 @@ const ClinicAppContent: React.FC = () => {
                   onOpenAiPrompt={handleOpenAiPrompt}
                 />
               )}
-
               {activeTab === 'doctor_profile' && <DoctorProfileLanding />}
-
               {activeTab === 'patients' && (
                 <PatientRegistry
                   onViewPatientDossier={patientId => setDossierPatientId(patientId)}
@@ -154,7 +135,6 @@ const ClinicAppContent: React.FC = () => {
                   onOpenAiPrompt={handleOpenAiPrompt}
                 />
               )}
-
               {activeTab === 'financials' && (
                 <FinancialHub
                   onOpenNewInvoice={() => setShowInvoiceModal(true)}
@@ -162,24 +142,19 @@ const ClinicAppContent: React.FC = () => {
                   onOpenAiAdvisor={() => setShowAiAdvisorModal(true)}
                 />
               )}
-
               {activeTab === 'calendar' && (
                 <SmartCalendar
-                  onOpenNewAppointment={() => {
-                    setActiveTab('calendar');
-                    window.location.hash = '#calendar';
-                  }}
+                  onOpenNewAppointment={() => switchTab('calendar')}
                   onOpenTriageModal={patientId => setTriagePatientId(patientId)}
                 />
               )}
-
               {activeTab === 'audit' && <AuditLogsView />}
             </>
           )}
         </main>
       </div>
 
-      {/* Floating Featherless AI Action Launcher (Doctor Mode) */}
+      {/* Floating AI Assistant (Admin only) */}
       {portalMode === 'admin' && (
         <button
           onClick={() => setAiDrawerState(prev => ({ isOpen: !prev.isOpen, initialPrompt: null }))}
@@ -190,10 +165,8 @@ const ClinicAppContent: React.FC = () => {
         </button>
       )}
 
-      {/* Portal Initial Selector Screen */}
       {showPortalSelectorModal && <PortalSelectorModal onSelectPortal={handleSelectPortalMode} />}
 
-      {/* Global Modals */}
       {dossierPatientId && (
         <PatientDossierModal
           patientId={dossierPatientId}
@@ -216,7 +189,6 @@ const ClinicAppContent: React.FC = () => {
       )}
 
       {showInvoiceModal && <InvoiceModal onClose={() => setShowInvoiceModal(false)} />}
-
       {showExpenseModal && <ExpenseModal onClose={() => setShowExpenseModal(false)} />}
 
       {showAiAdvisorModal && (

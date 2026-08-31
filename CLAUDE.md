@@ -1,5 +1,9 @@
 # CLAUDE.md - Project Knowledge Base & Developer Guidelines
 
+## 🚫 Strict Agent Rules
+- **NEVER open the browser autonomously.** Only launch a browser session when the USER explicitly instructs it.
+- Always ask the user before using any browser automation tool.
+
 ## 📋 Project Summary
 **Project**: Dr. Mohamed Hosny Ali Clinical Operations & Public Patient Portal  
 **Domain**: Obstetrics, Gynecology, ICSI (Haqn Mejhary), IVF, Laparoscopy & Fetal Medicine  

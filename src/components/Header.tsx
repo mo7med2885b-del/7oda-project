@@ -49,7 +49,7 @@ export const Header: React.FC = () => {
             onClick={() => {
               const newMode = portalMode === 'admin' ? 'patient' : 'admin';
               setPortalMode(newMode);
-              window.location.hash = newMode === 'patient' ? '#patient' : '#dashboard';
+              window.history.pushState(null, '', newMode === 'patient' ? '/patient' : '/dashboard');
             }}
             className={`px-3 py-1.5 rounded-xl font-bold text-[11px] sm:text-xs flex items-center gap-1.5 transition shadow-sm shrink-0 ${
               portalMode === 'admin'

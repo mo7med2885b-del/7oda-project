@@ -1,5 +1,9 @@
 # AGENTS.md - AI Agent & Architecture Memory
 
+## 🚫 Agent Behavioral Rules
+- **NEVER open the browser autonomously.** Only launch a browser session when the USER explicitly asks for it.
+- Always ask before using any browser tool.
+
 ## 📌 Project Overview
 **Dr. Mohamed Hosny Ali Clinical Operations & Public Portal Platform**
 An enterprise-grade, dual-portal web application for Obstetrics, Gynecology, Infertility, ICSI (Haqn Mejhary), and IVF procedures. Serving 4 branches across Egypt (Cairo, Mansoura, Damietta, Port Said).
