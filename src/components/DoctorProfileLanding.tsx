@@ -178,7 +178,7 @@ export const DoctorProfileLanding: React.FC = () => {
             <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2 sm:pt-4">
               <a
                 href="#booking-checkout-section"
-                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs sm:text-sm shadow-[0_10px_30px_rgba(0,203,135,0.4)] transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-[#00cb87] hover:bg-[#00b074] text-white font-black text-xs sm:text-sm shadow-[0_10px_30px_rgba(0,203,135,0.4)] transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
               >
                 <span>احجزي موعدكِ الآن</span>
                 {lang === 'ar' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
@@ -290,7 +290,7 @@ export const DoctorProfileLanding: React.FC = () => {
 
           {bookingSubmitted ? (
             <div className="p-8 rounded-3xl bg-[#00261c] border-2 border-[#00cb87] text-center space-y-4 shadow-2xl">
-              <div className="w-16 h-16 rounded-full bg-[#00cb87] text-slate-950 flex items-center justify-center mx-auto shadow-lg">
+              <div className="w-16 h-16 rounded-full bg-[#00cb87] text-white flex items-center justify-center mx-auto shadow-lg">
                 <Check className="w-10 h-10 stroke-[3]" />
               </div>
               <h3 className="text-2xl font-black text-white">تم تأكيد طلب الحجز وإصدار التذكرة بنجاح!</h3>
@@ -307,7 +307,7 @@ export const DoctorProfileLanding: React.FC = () => {
               </div>
               <button
                 onClick={() => setBookingSubmitted(false)}
-                className="px-6 py-2.5 rounded-xl bg-[#00cb87] text-slate-950 font-black text-xs shadow-lg hover:bg-[#00b074] transition"
+                className="px-6 py-2.5 rounded-xl bg-[#00cb87] text-white font-black text-xs shadow-lg hover:bg-[#00b074] transition"
               >
                 حجز موعد آخر
               </button>
@@ -329,7 +329,7 @@ export const DoctorProfileLanding: React.FC = () => {
                         onClick={() => setBookingBranch(b.id)}
                         className={`p-3 rounded-2xl font-bold border transition text-center ${
                           bookingBranch === b.id
-                            ? 'bg-[#00cb87] text-slate-950 border-[#00cb87] shadow-lg'
+                            ? 'bg-[#00cb87] text-white border-[#00cb87] shadow-lg'
                             : 'bg-[#00261c] text-slate-200 border-white/10 hover:border-[#00cb87]/50'
                         }`}
                       >
@@ -392,8 +392,8 @@ export const DoctorProfileLanding: React.FC = () => {
                               booked
                                 ? 'bg-rose-500/10 border-rose-400/30 text-rose-600/70 cursor-not-allowed opacity-75'
                                 : isSelected
-                                ? 'bg-[#00cb87] text-slate-950 border-[#00cb87] shadow-lg scale-105'
-                                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-[#00cb87] hover:text-slate-950'
+                                ? 'bg-[#00cb87] text-white border-[#00cb87] shadow-lg scale-105'
+                                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-[#00cb87] hover:text-white'
                             }`}
                           >
                             <span>{ts}</span>
@@ -505,7 +505,7 @@ export const DoctorProfileLanding: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleApplyPromo}
-                        className="px-4 py-2.5 rounded-xl bg-[#00473e] hover:bg-[#00cb87] hover:text-slate-950 text-white font-bold text-xs transition"
+                        className="px-4 py-2.5 rounded-xl bg-[#00473e] hover:bg-[#00cb87] hover:text-white text-white font-bold text-xs transition"
                       >
                         تطبيق
                       </button>
@@ -514,7 +514,7 @@ export const DoctorProfileLanding: React.FC = () => {
 
                   <button
                     type="submit"
-                    className="w-full py-4 rounded-2xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-sm shadow-xl transition flex items-center justify-center gap-2"
+                    className="w-full py-4 rounded-2xl bg-[#00cb87] hover:bg-[#00b074] text-white font-black text-sm shadow-xl transition flex items-center justify-center gap-2"
                   >
                     <Send className="w-4 h-4" />
                     <span>تأكيد الحجز والدفع بالعيادة ({netTotalPrice} ج.م)</span>
