@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useClinic } from '../context/ClinicContext';
 import { doctorInfo } from '../utils/i18n';
+import { doctorPhoto, clinicLogo } from '../assets/images';
 import {
   Award,
   Phone,
@@ -133,12 +134,9 @@ export const DoctorProfileLanding: React.FC = () => {
           <div className="md:col-span-5 flex justify-center md:justify-end relative">
             <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md h-[340px] sm:h-[380px] md:h-[450px] rounded-3xl overflow-hidden border-2 border-[#00cb87]/50 shadow-[0_20px_50px_rgba(0,0,0,0.6)] group">
               <img
-                src="/Frame-76-1.png.webp"
+                src={doctorPhoto}
                 alt="الدكتور محمد حسني علي"
                 className="w-full h-full object-cover object-top filter brightness-105 contrast-105 transition-transform duration-700 group-hover:scale-105"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = './Frame-76-1.png.webp';
-                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#001c15]/90 via-transparent to-transparent"></div>
 
@@ -425,7 +423,7 @@ export const DoctorProfileLanding: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <img src="/LOGO 7oda.jpg" alt="Logo" className="w-10 h-10 rounded-xl object-cover border border-[#00cb87]/40" />
+              <img src={clinicLogo} alt="Logo" className="w-10 h-10 rounded-xl object-cover border border-[#00cb87]/40" />
               <span className="font-serif font-black text-lg sm:text-xl text-white">د. محمد حسني علي</span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed">

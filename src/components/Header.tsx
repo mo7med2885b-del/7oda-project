@@ -1,5 +1,6 @@
 import React from 'react';
 import { useClinic } from '../context/ClinicContext';
+import { clinicLogo } from '../assets/images';
 import { Sun, Moon, Shield, RefreshCw, Globe, UserCheck, Heart } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -17,12 +18,9 @@ export const Header: React.FC = () => {
         {/* Left Side: Custom Logo & Title */}
         <div className="flex items-center gap-3">
           <img
-            src="/LOGO 7oda.jpg"
+            src={clinicLogo}
             alt="Dr. Mohamed Hosny Logo"
             className="w-11 h-11 rounded-xl object-cover border border-[#00473e]/40 shadow-md"
-            onError={(e) => {
-              (e.target as HTMLElement).style.display = 'none';
-            }}
           />
           <div>
             <h1 className="text-lg font-black tracking-tight dark:text-white text-[#122620] flex items-center gap-2">

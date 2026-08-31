@@ -1,5 +1,6 @@
 import React from 'react';
 import { useClinic } from '../context/ClinicContext';
+import { clinicLogo } from '../assets/images';
 import { Stethoscope, Heart, ArrowRight, ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react';
 
 interface PortalSelectorModalProps {
@@ -20,12 +21,9 @@ export const PortalSelectorModal: React.FC<PortalSelectorModalProps> = ({ onSele
         <div className="relative z-10 flex flex-col items-center space-y-4">
           <div className="relative">
             <img
-              src="/LOGO 7oda.jpg"
+              src={clinicLogo}
               alt="Mohamed Hosny Clinic Logo"
               className="w-24 h-24 md:w-28 md:h-28 rounded-3xl object-cover border-2 border-[#00cb87]/60 shadow-2xl"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = './LOGO 7oda.jpg';
-              }}
             />
             <div className="absolute -bottom-2 -right-2 p-1.5 rounded-full bg-[#00473e] border border-[#00cb87] text-[#00cb87] shadow">
               <Sparkles className="w-4 h-4" />
