@@ -17,6 +17,9 @@ import {
   Search,
   UserPlus,
   Users,
+  DollarSign,
+  Tag,
+  Receipt,
   X
 } from 'lucide-react';
 
@@ -26,7 +29,7 @@ interface SmartCalendarProps {
 }
 
 export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal }) => {
-  const { appointments, patients, addPatient, addAppointment, updateAppointmentStatus, t, lang } = useClinic();
+  const { appointments, patients, addPatient, addAppointment, updateAppointmentStatus, addInvoice, t, lang } = useClinic();
 
   const [currentDate, setCurrentDate] = useState<string>('2026-08-31');
   const [calendarView, setCalendarView] = useState<'week' | 'day' | 'month' | 'list'>('week');
@@ -52,6 +55,11 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
   const [visitReason, setVisitReason] = useState('');
   const [selectedBranch, setSelectedBranch] = useState(doctorInfo.branches[0].id);
 
+  // Financial & Discount Fields
+  const [feeAmount, setFeeAmount] = useState<number>(500);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [discountReason, setDiscountReason] = useState<string>('');
+
   // Week Days Generation (Aug 30 - Sep 5, 2026)
   const weekDays = [
     { dayNameAr: 'الأحد', dayNameEn: 'SUN', dateStr: '2026-08-30', num: 30 },
@@ -73,6 +81,8 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
     const matchesBranch = selectedBranchFilter === 'all' || apt.reason.includes(selectedBranchFilter);
     return matchesBranch;
   });
+
+  const netPayable = Math.max(0, feeAmount - discountAmount);
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +118,12 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
     const branchObj = doctorInfo.branches.find(b => b.id === selectedBranch);
     const branchName = branchObj ? (lang === 'ar' ? branchObj.city_ar : branchObj.city_en) : '';
 
+    const discountInfoStr = discountAmount > 0 
+      ? ` [خصم: ${discountAmount} ج.م - ${discountReason || 'بدون سبب مذكور'}]` 
+      : '';
+
+    const fullReasonStr = `${visitReason || (lang === 'ar' ? 'كشف عيادة' : 'Consultation')} [${visitType} - ${branchName}] - الرسوم: ${netPayable} ج.م${discountInfoStr}`;
+
     addAppointment({
       patient_id: patientIdToBook,
       patient_name: patientNameToBook,
@@ -115,11 +131,38 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
       start_time: startTime,
       end_time: endTime,
       status: 'Waiting',
-      reason: `${visitReason || (lang === 'ar' ? 'كشف عيادة' : 'Consultation')} [${visitType} - ${branchName}]`,
+      reason: fullReasonStr,
       type: visitType
     });
 
-    alert(lang === 'ar' ? `تم تسجيل وحجز الموعد بنجاح للمريضة (${patientNameToBook})!` : `Appointment booked successfully for ${patientNameToBook}!`);
+    // Create Invoice if net payable > 0
+    if (netPayable >= 0) {
+      addInvoice({
+        patient_id: patientIdToBook,
+        patient_name: patientNameToBook,
+        issue_date: aptDate,
+        total_amount: feeAmount,
+        discount_amount: discountAmount,
+        discount_reason: discountReason || 'خصم كشف مباشر',
+        net_amount: netPayable,
+        paid_amount: netPayable,
+        payment_status: 'Paid',
+        items: [
+          {
+            description: `${visitType} (${branchName})`,
+            quantity: 1,
+            unit_price: feeAmount,
+            total: feeAmount
+          }
+        ]
+      });
+    }
+
+    alert(
+      lang === 'ar'
+        ? `تم تسجيل وحجز الموعد بنجاح للمريضة (${patientNameToBook})!\nالمبلغ المستحق بعد الخصم: ${netPayable} ج.م`
+        : `Appointment booked successfully for ${patientNameToBook}!\nNet total: EGP ${netPayable}`
+    );
 
     // Reset Form
     setIsCreatingNewPatient(false);
@@ -127,6 +170,9 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
     setNewFullName('');
     setNewPhone('');
     setNewNationalId('');
+    setFeeAmount(500);
+    setDiscountAmount(0);
+    setDiscountReason('');
     setShowBookingModal(false);
   };
 
@@ -340,7 +386,7 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
         </div>
       </div>
 
-      {/* NEW APPOINTMENT MODAL (WITH QUICK NEW PATIENT CREATION TOGGLE) */}
+      {/* NEW APPOINTMENT MODAL (WITH QUICK NEW PATIENT CREATION & FINANCIAL DISCOUNT SECTION) */}
       {showBookingModal && (
         <div className="fixed inset-0 z-50 bg-[#001c15]/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
           <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/40 shadow-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
@@ -376,7 +422,7 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
               </button>
             </div>
 
-            <form onSubmit={handleBookingSubmit} className="space-y-3 text-xs">
+            <form onSubmit={handleBookingSubmit} className="space-y-3.5 text-xs">
               {!isCreatingNewPatient ? (
                 <div>
                   <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">{lang === 'ar' ? 'اختر مريضة مسجلة *' : 'Select Registered Patient *'}</label>
@@ -530,6 +576,57 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                   placeholder="مثال: استشارة بروتوكول الحقن المجهري ودراسة البطانة..."
                   className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white"
                 />
+              </div>
+
+              {/* DEDICATED FINANCIAL & DISCOUNT SECTION */}
+              <div className="p-3.5 rounded-xl bg-[#00473e]/15 border border-[#00cb87]/40 space-y-3">
+                <div className="flex items-center justify-between text-xs font-black text-[#00cb87]">
+                  <div className="flex items-center gap-1.5">
+                    <Receipt className="w-4 h-4 text-[#00cb87]" />
+                    <span>رسوم الكشف والخصم المالي (Pricing & Discounts)</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-[#00cb87]/20 text-[#00cb87] font-mono text-[10px]">
+                    الصافي: {netPayable} ج.م
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">قيمة الكشف / الإجراء (ج.م) *</label>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      value={feeAmount}
+                      onChange={e => setFeeAmount(Number(e.target.value))}
+                      className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-mono font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">قيمة الخصم (ج.م)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={feeAmount}
+                      value={discountAmount}
+                      onChange={e => setDiscountAmount(Number(e.target.value))}
+                      className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-rose-500 dark:text-rose-400 font-mono font-bold"
+                    />
+                  </div>
+                </div>
+
+                {discountAmount > 0 && (
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">سبب الخصم (Discount Reason)</label>
+                    <input
+                      type="text"
+                      value={discountReason}
+                      onChange={e => setDiscountReason(e.target.value)}
+                      placeholder="مثال: خصم نقابة الأطباء، متابعة مجانية، حالة إنسانية..."
+                      className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#e3ded5] dark:border-white/10">

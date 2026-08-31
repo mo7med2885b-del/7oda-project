@@ -3,62 +3,111 @@ import { useClinic } from '../context/ClinicContext';
 import { doctorInfo } from '../utils/i18n';
 import { doctorPhoto, clinicLogo } from '../assets/images';
 import {
-  Award,
-  Phone,
-  CheckCircle,
   Sparkles,
-  Send,
+  Award,
+  MapPin,
+  Calendar,
+  Phone,
+  Clock,
+  HeartHandshake,
+  CheckCircle,
+  MessageCircle,
+  Star,
   ShieldCheck,
+  Building2,
   ArrowRight,
   ArrowLeft,
-  Star
+  ChevronDown,
+  User,
+  Activity,
+  FileText,
+  Tag,
+  Receipt,
+  Check,
+  Send,
+  Ticket
 } from 'lucide-react';
 
 export const DoctorProfileLanding: React.FC = () => {
-  const { lang, t, addAppointment, addPatient } = useClinic();
+  const { lang, addAppointment } = useClinic();
 
+  // Booking Form & Checkout State
   const [bookingName, setBookingName] = useState('');
   const [bookingPhone, setBookingPhone] = useState('');
   const [bookingBranch, setBookingBranch] = useState(doctorInfo.branches[0].id);
+  const [selectedService, setSelectedService] = useState({
+    id: 'icsi',
+    name_ar: 'بروتوكول الحقن المجهري (ICSI Protocol)',
+    name_en: 'ICSI Protocol Consultation',
+    price: 1200
+  });
+  const [selectedDate, setSelectedDate] = useState('2026-08-31');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('10:00 AM');
+  const [promoCode, setPromoCode] = useState('');
+  const [discountApplied, setDiscountApplied] = useState(false);
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
+
+  const servicesList = [
+    {
+      id: 'consultation',
+      name_ar: 'كشف استشاري وتقييم أولي',
+      name_en: 'Initial Consultant Assessment',
+      price: 500
+    },
+    {
+      id: 'icsi',
+      name_ar: 'بروتوكول الحقن المجهري (ICSI Protocol)',
+      name_en: 'ICSI Protocol Consultation',
+      price: 1200
+    },
+    {
+      id: 'follicle',
+      name_ar: 'متابعة تبويض وسونار مهبلي',
+      name_en: 'Folliculometry & Ultrasound',
+      price: 350
+    },
+    {
+      id: 'hysteroscopy',
+      name_ar: 'منظار رحمي وسحب بويضات',
+      name_en: 'Diagnostic Hysteroscopy',
+      price: 2000
+    }
+  ];
+
+  const timeSlots = ['09:00 AM', '10:30 AM', '12:00 PM', '02:30 PM', '04:00 PM', '06:00 PM'];
+
+  const discountPercent = discountApplied ? 10 : 0;
+  const discountValue = (selectedService.price * discountPercent) / 100;
+  const netTotalPrice = Math.max(0, selectedService.price - discountValue);
+
+  const handleApplyPromo = () => {
+    if (promoCode.trim().toUpperCase() === 'HOSNY10' || promoCode.trim() === 'خصم10') {
+      setDiscountApplied(true);
+      alert(lang === 'ar' ? 'تم تطبيق كود الخصم بنجاح (خصم 10%)!' : 'Promo code applied! (10% OFF)');
+    } else {
+      alert(lang === 'ar' ? 'كود الخصم غير صحيح. جرب كود: HOSNY10' : 'Invalid code. Try: HOSNY10');
+    }
+  };
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bookingName || !bookingPhone) {
-      alert(lang === 'ar' ? 'يرجى إدخال الاسم ورقم الهاتف.' : 'Please enter your name and phone number.');
-      return;
-    }
+    if (!bookingName || !bookingPhone) return;
 
-    const newPat = addPatient({
-      full_name: bookingName,
-      phone: bookingPhone,
-      national_id: `29${Math.floor(Math.random() * 100000000000)}`,
-      age: 28,
-      gender: 'Female',
-      blood_type: 'O+',
-      medical_alerts: 'Online Booking Request',
-      allergies: 'None',
-      emergency_contact: bookingPhone
-    });
+    const branchObj = doctorInfo.branches.find(b => b.id === bookingBranch);
+    const branchName = branchObj ? (lang === 'ar' ? branchObj.city_ar : branchObj.city_en) : '';
 
-    const todayStr = new Date().toISOString().split('T')[0];
     addAppointment({
-      patient_id: newPat.id,
-      patient_name: newPat.full_name,
-      appointment_date: todayStr,
-      start_time: '12:00',
-      end_time: '12:30',
+      patient_id: `p-online-${Date.now()}`,
+      patient_name: bookingName,
+      appointment_date: selectedDate,
+      start_time: selectedTimeSlot,
+      end_time: '11:00 AM',
       status: 'Waiting',
-      reason: `Online Reservation (${bookingBranch})`,
-      type: 'Initial Assessment'
+      reason: `${selectedService.name_ar} [أونلاين - ${branchName}] - السعر: ${netTotalPrice} ج.م`,
+      type: selectedService.name_en
     });
 
     setBookingSubmitted(true);
-    setTimeout(() => {
-      setBookingName('');
-      setBookingPhone('');
-      setBookingSubmitted(false);
-    }, 4000);
   };
 
   return (
@@ -113,7 +162,7 @@ export const DoctorProfileLanding: React.FC = () => {
 
             <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2 sm:pt-4">
               <a
-                href="#booking-section"
+                href="#booking-checkout-section"
                 className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs sm:text-sm shadow-[0_10px_30px_rgba(0,203,135,0.4)] transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
               >
                 <span>احجزي موعدكِ الآن</span>
@@ -149,276 +198,308 @@ export const DoctorProfileLanding: React.FC = () => {
           </div>
 
         </div>
-
-        {/* Doctor Credentials Footer Bar */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-white/10 text-[11px] sm:text-xs text-slate-300">
-          <div className="flex items-center gap-2">
-            <Award className="w-4 h-4 text-amber-400 shrink-0" />
-            <span>عضو الجامعة المصرية والأوروبية والأمريكية للخصوبة والعقم (ESHRE & ASRM)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#00cb87] shrink-0" />
-            <span>استشاري الجودة من الجامعة الأمريكية وعضو الجمعية المصرية للتدخل الجراحي الدقيق</span>
-          </div>
-        </div>
       </section>
 
-      {/* 2. ELEGANT WARM CREAM SCALING STATS SECTION */}
-      <section className="bg-[#f5f2eb] dark:bg-[#00261c] py-10 sm:py-16 px-4 sm:px-8 md:px-12 rounded-3xl mx-2 sm:mx-6 shadow-xl space-y-10 sm:space-y-12 text-center border border-[#e3ded5] dark:border-[#00cb87]/30">
-        <div className="max-w-3xl mx-auto space-y-3">
-          <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight font-serif text-[#122620] dark:text-white">
-            تحقيق أعلى نسب نجاح الخصوبة <span className="italic text-[#00473e] dark:text-[#00cb87]">بأعلى دقة كلينيكية</span>
+      {/* 2. STATS OVERVIEW CARDS */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+        {doctorInfo.verified_stats.map((stat, idx) => (
+          <div
+            key={idx}
+            className="p-5 sm:p-6 rounded-3xl bg-[#001c15] border border-[#00cb87]/30 shadow-xl space-y-2 text-center transform hover:-translate-y-1 transition"
+          >
+            <div className="text-2xl sm:text-4xl font-black text-[#00cb87] font-mono tracking-tight">{stat.metric}</div>
+            <div className="text-xs sm:text-sm font-extrabold text-white">{stat.label_ar}</div>
+            <div className="text-[10px] sm:text-xs text-slate-400 font-medium">{stat.sub_ar}</div>
+          </div>
+        ))}
+      </section>
+
+      {/* 3. FOUR CLINIC BRANCHES */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
+        <div className="text-center space-y-2 max-w-2xl mx-auto">
+          <span className="px-3 py-1 rounded-full bg-[#00cb87]/20 text-[#00cb87] text-xs font-bold uppercase tracking-wider">
+            فروع عيادات د. محمد حسني
+          </span>
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight dark:text-white text-[#122620]">
+            أربعة فروع مجهزة بأحدث تقنيات أطفال الأنابيب
           </h2>
-          <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-300 font-medium">
-            نقدم بروتوكولات علاجية مخصصة لكل زوجين لضمان أعلى نسب نجاح للحمل بأمان تترسخ فيه الخبرات الكلينيكية.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-300">
+            احجزي في الفرع الأقرب إليكِ بالقاهرة، المنصورة، دمياط، أو بورسعيد.
           </p>
         </div>
 
-        {/* 4 STATS CIRCLES */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div className="flex flex-col items-center space-y-4 p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#001c15] shadow-lg border border-[#e3ded5] dark:border-[#00cb87]/30">
-            <div className="relative w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" className="text-slate-100 dark:text-slate-800" fill="transparent" />
-                <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" className="text-[#00cb87]" fill="transparent" strokeDasharray="264" strokeDashoffset="30" strokeLinecap="round" />
-              </svg>
-              <div className="absolute flex flex-col items-center">
-                <span className="text-3xl sm:text-4xl font-black font-mono text-[#00473e] dark:text-white">+3,000</span>
-                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">مريضة موثوقة</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {doctorInfo.branches.map(branch => (
+            <div
+              key={branch.id}
+              className="p-6 rounded-3xl bg-[#001c15] border border-[#00cb87]/30 shadow-xl space-y-4 flex flex-col justify-between hover:border-[#00cb87] transition"
+            >
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#00473e] text-[#00cb87] flex items-center justify-center font-bold shadow">
+                  <Building2 className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-black text-white">{branch.city_ar}</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">{branch.address_ar}</p>
+                <div className="text-xs text-[#00cb87] font-bold flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{branch.days_ar} ({branch.hours})</span>
+                </div>
               </div>
-            </div>
-            <p className="text-xs font-bold text-slate-700 dark:text-slate-200">أكثر من 3000 مريضة تثق في خدمات العيادة بمصر</p>
-          </div>
 
-          <div className="flex flex-col items-center space-y-4 p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#001c15] shadow-lg border border-[#e3ded5] dark:border-[#00cb87]/30">
-            <div className="relative w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" className="text-slate-100 dark:text-slate-800" fill="transparent" />
-                <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" className="text-[#00473e]" fill="transparent" strokeDasharray="264" strokeDashoffset="58" strokeLinecap="round" />
-              </svg>
-              <div className="absolute flex flex-col items-center">
-                <span className="text-3xl sm:text-4xl font-black font-mono text-[#00473e] dark:text-white">78%</span>
-                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">نجاح من أول مرة</span>
-              </div>
+              <a
+                href="#booking-checkout-section"
+                onClick={() => setBookingBranch(branch.id)}
+                className="w-full py-2.5 rounded-xl bg-[#00473e] hover:bg-[#00cb87] hover:text-slate-950 text-white font-bold text-xs transition text-center shadow"
+              >
+                احجزي فرع {branch.city_ar}
+              </a>
             </div>
-            <p className="text-xs font-bold text-slate-700 dark:text-slate-200">نسبة نجاح الحقن المجهري الموثقة من أول محاولة</p>
-          </div>
-
-          <div className="flex flex-col items-center space-y-4 p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#001c15] shadow-lg border border-[#e3ded5] dark:border-[#00cb87]/30">
-            <div className="relative w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" className="text-slate-100 dark:text-slate-800" fill="transparent" />
-                <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" className="text-emerald-500" fill="transparent" strokeDasharray="264" strokeDashoffset="20" strokeLinecap="round" />
-              </svg>
-              <div className="absolute flex flex-col items-center">
-                <span className="text-3xl sm:text-4xl font-black font-mono text-[#00473e] dark:text-white">94%</span>
-                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">تعافي الأرحام</span>
-              </div>
-            </div>
-            <p className="text-xs font-bold text-slate-700 dark:text-slate-200">شفاء تام من أمراض الرحم وتكيس المبيضين بالمنظار</p>
-          </div>
-
-          <div className="flex flex-col items-center space-y-4 p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#001c15] shadow-lg border border-[#e3ded5] dark:border-[#00cb87]/30">
-            <div className="relative w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" className="text-slate-100 dark:text-slate-800" fill="transparent" />
-                <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="8" className="text-purple-500" fill="transparent" strokeDasharray="264" strokeDashoffset="45" strokeLinecap="round" />
-              </svg>
-              <div className="absolute flex flex-col items-center">
-                <span className="text-3xl sm:text-4xl font-black font-mono text-[#00473e] dark:text-white">+600</span>
-                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">ولادة أطفال</span>
-              </div>
-            </div>
-            <p className="text-xs font-bold text-slate-700 dark:text-slate-200">ولادة ناجحة لأطفال وحالات توائم بدون مضاعفات</p>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* 3. DEEP FOREST EMERALD CLINICAL SPECIALTIES CARDS GRID */}
-      <section className="bg-[#00261c] text-white py-12 sm:py-16 px-4 sm:px-8 md:px-12 rounded-3xl mx-2 sm:mx-6 shadow-2xl space-y-10 sm:space-y-12 text-center relative overflow-hidden border border-[#00cb87]/20">
-        <div className="max-w-3xl mx-auto space-y-4 relative z-10">
-          <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight font-serif">
-            {lang === 'ar' ? (
-              <>
-                رعاية صحية مصممة <span className="italic text-[#00cb87] font-normal">خصيصاً للنساء</span> بأعلى موثوقية كلينيكية
-              </>
-            ) : (
-              <>
-                Healthcare designed for <span className="italic text-[#00cb87] font-normal">women and families</span> that's personal and proven
-              </>
-            )}
-          </h2>
-          <p className="text-xs sm:text-sm md:text-base text-slate-300 font-medium">
-            أكثر من 60+ حالة أطفال أنابيب ناجحة و 60+ حالة حقن مجهري من أول مرة و 100+ حالة شفيت تماماً من أمراض الرحم.
-          </p>
-        </div>
-
-        {/* 4 CARDS GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left rtl:text-right relative z-10">
-          <div className="group cursor-pointer rounded-3xl bg-[#001c15] border border-[#00cb87]/30 hover:border-[#00cb87] p-5 sm:p-6 space-y-6 flex flex-col justify-between shadow-xl transition transform hover:-translate-y-1">
-            <div className="space-y-3">
-              <span className="w-3 h-3 rounded-full bg-[#00cb87] inline-block shadow"></span>
-              <h3 className="text-lg sm:text-xl font-black text-white group-hover:text-[#00cb87] transition">
-                الحقن المجهري وأطفال الأنابيب
-              </h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                بروتوكولات تنشيط المبيض الفائقة المخصصة، سحب البويضات بدون ألم، وفحص الجودة الوراثية للأجنة.
-              </p>
+      {/* 4. INTERACTIVE APPOINTMENT CHECKOUT SECTION */}
+      <section id="booking-checkout-section" className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="p-6 sm:p-10 rounded-3xl bg-[#001c15] border-2 border-[#00cb87]/40 shadow-2xl space-y-8">
+          
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00cb87]/20 text-[#00cb87] text-xs font-bold mb-2">
+                <Ticket className="w-4 h-4 text-[#00cb87]" />
+                <span>حجز الكشف وتأكيد التذكرة الرقمية</span>
+              </div>
+              <h2 className="text-2xl sm:text-4xl font-black text-white font-serif">حجز موعد جديد واختيار الخدمات والتسعير</h2>
+              <p className="text-xs sm:text-sm text-slate-300 mt-1">اختر الإجراء الطبي والفرع والتوقيت واطلع على إجمالي الرسوم والخصومات مباشرة.</p>
             </div>
-            <a href="#booking-section" className="px-4 py-2.5 rounded-xl bg-white/10 group-hover:bg-[#00cb87] group-hover:text-slate-950 text-white font-extrabold text-xs transition flex items-center justify-between">
-              <span>استكشاف البروتوكول</span>
-              {lang === 'ar' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-            </a>
-          </div>
-
-          <div className="group cursor-pointer rounded-3xl bg-[#001c15] border border-[#00cb87]/30 hover:border-[#00cb87] p-5 sm:p-6 space-y-6 flex flex-col justify-between shadow-xl transition transform hover:-translate-y-1">
-            <div className="space-y-3">
-              <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block shadow"></span>
-              <h3 className="text-lg sm:text-xl font-black text-white group-hover:text-[#00cb87] transition">
-                رعاية الحمل والأجنة الخرجة
-              </h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                متابعة دقيقة للحمل عالي الخطورة والحمل التوأمي بالسونار رباعي الأبعاد والتشخيص المبكر.
-              </p>
-            </div>
-            <a href="#booking-section" className="px-4 py-2.5 rounded-xl bg-white/10 group-hover:bg-[#00cb87] group-hover:text-slate-950 text-white font-extrabold text-xs transition flex items-center justify-between">
-              <span>متابعة الحمل</span>
-              {lang === 'ar' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-            </a>
-          </div>
-
-          <div className="group cursor-pointer rounded-3xl bg-[#001c15] border border-[#00cb87]/30 hover:border-[#00cb87] p-5 sm:p-6 space-y-6 flex flex-col justify-between shadow-xl transition transform hover:-translate-y-1">
-            <div className="space-y-3">
-              <span className="w-3 h-3 rounded-full bg-purple-400 inline-block shadow"></span>
-              <h3 className="text-lg sm:text-xl font-black text-white group-hover:text-[#00cb87] transition">
-                جراحة المناظير وتكيس المبيض
-              </h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                مناظير الرحم والبطن التشخيصية والعلاجية، إزالة ألياف الرحم وعلاج بطانة الرحم المهاجرة.
-              </p>
-            </div>
-            <a href="#booking-section" className="px-4 py-2.5 rounded-xl bg-white/10 group-hover:bg-[#00cb87] group-hover:text-slate-950 text-white font-extrabold text-xs transition flex items-center justify-between">
-              <span>جراحة المناظير</span>
-              {lang === 'ar' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-            </a>
-          </div>
-
-          <div className="group cursor-pointer rounded-3xl bg-[#001c15] border border-[#00cb87]/30 hover:border-[#00cb87] p-5 sm:p-6 space-y-6 flex flex-col justify-between shadow-xl transition transform hover:-translate-y-1">
-            <div className="space-y-3">
-              <span className="w-3 h-3 rounded-full bg-amber-400 inline-block shadow"></span>
-              <h3 className="text-lg sm:text-xl font-black text-white group-hover:text-[#00cb87] transition">
-                توازن الهرمونات ومناعة الخصوبة
-              </h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                علاج خمول الغدة الدرقية، اضطرابات هرمون الحليب (Prolactin)، وتحفيز توازن التبويض.
-              </p>
-            </div>
-            <a href="#booking-section" className="px-4 py-2.5 rounded-xl bg-white/10 group-hover:bg-[#00cb87] group-hover:text-slate-950 text-white font-extrabold text-xs transition flex items-center justify-between">
-              <span>تحليل الهرمونات</span>
-              {lang === 'ar' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. ACCREDITATION PARTNERS BAR */}
-      <section className="bg-[#001c15] py-8 sm:py-10 px-4 border-y border-[#00cb87]/20 text-white space-y-6">
-        <div className="text-center text-[10px] sm:text-xs font-mono font-bold uppercase tracking-widest text-[#00cb87]">
-          • المراكز الطبية والجمعيات المعتمدة (TRUSTED MEDICAL PARTNERS) •
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 md:gap-12 text-xs font-extrabold">
-          <div className="flex items-center gap-2 border border-white/20 px-3.5 py-2 rounded-xl bg-white/5">
-            <span className="text-amber-300 font-serif font-black text-xs sm:text-sm">ASRM</span>
-            <span className="text-[11px] sm:text-xs">الجامعة الأمريكية للخصوبة</span>
-          </div>
-          <div className="flex items-center gap-2 border border-white/20 px-3.5 py-2 rounded-xl bg-white/5">
-            <span className="text-[#00cb87] font-serif font-black text-xs sm:text-sm">ESHRE</span>
-            <span className="text-[11px] sm:text-xs">الجامعة الأوروبية لعقم النساء</span>
-          </div>
-          <div className="flex items-center gap-2 border border-white/20 px-3.5 py-2 rounded-xl bg-white/5">
-            <span className="text-emerald-300 font-serif font-black text-xs sm:text-sm">ROYAL</span>
-            <span className="text-[11px] sm:text-xs">مركز رويال للخصوبة (بورسعيد)</span>
-          </div>
-          <div className="flex items-center gap-2 border border-white/20 px-3.5 py-2 rounded-xl bg-white/5">
-            <span className="text-cyan-300 font-serif font-black text-xs sm:text-sm">WELL CARE</span>
-            <span className="text-[11px] sm:text-xs">مول ويل كير (التجمع الخامس)</span>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. BOOKING FORM CARD */}
-      <section id="booking-section" className="px-2 sm:px-6 md:px-12 pb-12">
-        <div className="p-6 sm:p-10 md:p-12 rounded-3xl bg-gradient-to-r from-[#001c15] via-[#00261c] to-[#00473e] text-white shadow-2xl space-y-6 sm:space-y-8 border border-[#00cb87]/40">
-          <div className="max-w-2xl space-y-2">
-            <h2 className="text-xl sm:text-3xl md:text-4xl font-black font-serif">احجزي موعدكِ الآن مع الدكتور محمد حسني علي</h2>
-            <p className="text-xs sm:text-sm text-slate-300">سجلي بياناتك وسيقوم فريق تنسيق العيادة بالتواصل معكِ فوراً لتأكيد الحجز وتحديد الموعد المناسب.</p>
           </div>
 
           {bookingSubmitted ? (
-            <div className="p-5 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs sm:text-sm flex items-center gap-3">
-              <CheckCircle className="w-6 h-6 text-emerald-400 shrink-0" />
-              <span>
-                {lang === 'ar'
-                  ? 'تم تسجيل طلب الحجز بنجاح! ستقوم سكرتارية عيادة د. محمد حسني بالتواصل معكِ فوراً.'
-                  : 'Booking request registered successfully! Our team will contact you shortly.'}
-              </span>
+            <div className="p-8 rounded-3xl bg-[#00261c] border-2 border-[#00cb87] text-center space-y-4 shadow-2xl">
+              <div className="w-16 h-16 rounded-full bg-[#00cb87] text-slate-950 flex items-center justify-center mx-auto shadow-lg">
+                <Check className="w-10 h-10 stroke-[3]" />
+              </div>
+              <h3 className="text-2xl font-black text-white">تم تأكيد طلب الحجز وإصدار التذكرة بنجاح!</h3>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
+                شكراً لكِ د./أ.{' '}
+                <span className="text-[#00cb87] font-bold">{bookingName}</span>. تم حجز موعدك لـ{' '}
+                <span className="text-white font-bold">{selectedService.name_ar}</span> بتاريخ{' '}
+                <span className="font-mono text-[#00cb87]">{selectedDate} ({selectedTimeSlot})</span>.
+              </p>
+              <div className="p-4 rounded-2xl bg-[#001c15] border border-[#00cb87]/40 max-w-md mx-auto text-xs space-y-1.5 text-right font-mono">
+                <div className="flex justify-between text-slate-300"><span>الإجمالي:</span><span>{selectedService.price} ج.م</span></div>
+                {discountApplied && <div className="flex justify-between text-rose-400"><span>الخصم المطبق (10%):</span><span>-{discountValue} ج.م</span></div>}
+                <div className="flex justify-between text-white font-bold text-sm border-t border-white/10 pt-1.5"><span>الصافي المطلوب بالعيادة:</span><span className="text-[#00cb87]">{netTotalPrice} ج.م</span></div>
+              </div>
+              <button
+                onClick={() => setBookingSubmitted(false)}
+                className="px-6 py-2.5 rounded-xl bg-[#00cb87] text-slate-950 font-black text-xs shadow-lg hover:bg-[#00b074] transition"
+              >
+                حجز موعد آخر
+              </button>
             </div>
           ) : (
-            <form onSubmit={handleBookingSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-              <div>
-                <label className="block text-slate-300 font-bold mb-1.5">{t('name_field')} *</label>
-                <input
-                  type="text"
-                  required
-                  value={bookingName}
-                  onChange={e => setBookingName(e.target.value)}
-                  placeholder={lang === 'ar' ? 'أدخلي اسمك بالكامل' : 'Full Name'}
-                  className="w-full p-3.5 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00cb87]"
-                />
+            <form onSubmit={handleBookingSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              
+              {/* Left Column: Interactive Form Controls */}
+              <div className="lg:col-span-7 space-y-6 text-xs">
+                
+                {/* 1. Select Branch */}
+                <div className="space-y-2">
+                  <label className="block text-white font-extrabold text-sm">1. اختر فرع العيادة *</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {doctorInfo.branches.map(b => (
+                      <button
+                        type="button"
+                        key={b.id}
+                        onClick={() => setBookingBranch(b.id)}
+                        className={`p-3 rounded-2xl font-bold border transition text-center ${
+                          bookingBranch === b.id
+                            ? 'bg-[#00cb87] text-slate-950 border-[#00cb87] shadow-lg'
+                            : 'bg-[#00261c] text-slate-200 border-white/10 hover:border-[#00cb87]/50'
+                        }`}
+                      >
+                        {b.city_ar}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Select Medical Service */}
+                <div className="space-y-2">
+                  <label className="block text-white font-extrabold text-sm">2. اختر نوع الكشف / الإجراء الطبي *</label>
+                  <div className="space-y-2">
+                    {servicesList.map(srv => (
+                      <div
+                        key={srv.id}
+                        onClick={() => setSelectedService(srv)}
+                        className={`p-3.5 rounded-2xl border cursor-pointer flex items-center justify-between transition ${
+                          selectedService.id === srv.id
+                            ? 'bg-[#00473e] border-[#00cb87] text-white shadow-md'
+                            : 'bg-[#00261c] border-white/10 text-slate-300 hover:border-white/30'
+                        }`}
+                      >
+                        <div className="space-y-0.5">
+                          <div className="font-extrabold text-xs text-white">{srv.name_ar}</div>
+                          <div className="text-[10px] text-slate-400">{srv.name_en}</div>
+                        </div>
+                        <div className="font-mono font-black text-sm text-[#00cb87]">{srv.price} ج.م</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. Date & Time Selection */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-white font-extrabold">3. تاريخ الحجز *</label>
+                    <input
+                      type="date"
+                      required
+                      value={selectedDate}
+                      onChange={e => setSelectedDate(e.target.value)}
+                      className="w-full p-3 rounded-xl bg-[#00261c] border border-white/20 text-white font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-white font-extrabold">4. توقيت الحجز المناسب *</label>
+                    <select
+                      value={selectedTimeSlot}
+                      onChange={e => setSelectedTimeSlot(e.target.value)}
+                      className="w-full p-3 rounded-xl bg-[#00261c] border border-white/20 text-white font-bold"
+                    >
+                      {timeSlots.map(ts => (
+                        <option key={ts} value={ts}>{ts}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* 4. Patient Information */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-white font-extrabold">اسم المريضة بالكامل *</label>
+                    <input
+                      type="text"
+                      required
+                      value={bookingName}
+                      onChange={e => setBookingName(e.target.value)}
+                      placeholder="أدخلي اسمكِ الثلاثي"
+                      className="w-full p-3 rounded-xl bg-[#00261c] border border-white/20 text-white placeholder-slate-400"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-white font-extrabold">رقم الهاتف (الواتساب) *</label>
+                    <input
+                      type="text"
+                      required
+                      value={bookingPhone}
+                      onChange={e => setBookingPhone(e.target.value)}
+                      placeholder="010xxxxxxxx"
+                      className="w-full p-3 rounded-xl bg-[#00261c] border border-white/20 text-white placeholder-slate-400 font-mono"
+                      dir="ltr"
+                    />
+                  </div>
+                </div>
+
               </div>
 
-              <div>
-                <label className="block text-slate-300 font-bold mb-1.5">{t('phone_field')} *</label>
-                <input
-                  type="text"
-                  required
-                  value={bookingPhone}
-                  onChange={e => setBookingPhone(e.target.value)}
-                  placeholder="010xxxxxxxx"
-                  className="w-full p-3.5 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00cb87] font-mono"
-                />
+              {/* Right Column: Live Interactive Checkout Summary Card */}
+              <div className="lg:col-span-5">
+                <div className="p-6 rounded-3xl bg-[#00261c] border border-[#00cb87]/40 shadow-2xl space-y-6 sticky top-24">
+                  
+                  <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                    <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
+                      <Receipt className="w-5 h-5 text-[#00cb87]" />
+                      <span>ملخص التذكرة والحجز المالي</span>
+                    </h3>
+                    <span className="px-2.5 py-1 rounded-full bg-[#00cb87]/20 text-[#00cb87] font-mono text-[10px] font-bold">
+                      Checkout
+                    </span>
+                  </div>
+
+                  <div className="space-y-3 text-xs">
+                    <div className="flex justify-between text-slate-300">
+                      <span>الخدمة المختارة:</span>
+                      <span className="font-bold text-white max-w-[170px] text-left truncate">{selectedService.name_ar}</span>
+                    </div>
+
+                    <div className="flex justify-between text-slate-300">
+                      <span>الفرع:</span>
+                      <span className="font-bold text-[#00cb87]">
+                        {doctorInfo.branches.find(b => b.id === bookingBranch)?.city_ar}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-slate-300">
+                      <span>الموعد والتاريخ:</span>
+                      <span className="font-mono text-white">{selectedDate} | {selectedTimeSlot}</span>
+                    </div>
+
+                    <div className="border-t border-white/10 pt-3 space-y-2 font-mono">
+                      <div className="flex justify-between text-slate-300">
+                        <span>السعر الأساسي:</span>
+                        <span>{selectedService.price} ج.م</span>
+                      </div>
+
+                      {discountApplied && (
+                        <div className="flex justify-between text-rose-400 font-bold">
+                          <span>الخصم المطبق (10%):</span>
+                          <span>-{discountValue} ج.م</span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between text-white font-extrabold text-base border-t border-white/10 pt-2">
+                        <span>إجمالي الرسوم:</span>
+                        <span className="text-[#00cb87]">{netTotalPrice} ج.م</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Promo Code Input */}
+                  <div className="space-y-2 border-t border-white/10 pt-4">
+                    <label className="block text-xs text-slate-300 font-bold">هل لديكِ كود خصم؟ (أدخلي: HOSNY10)</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={promoCode}
+                        onChange={e => setPromoCode(e.target.value)}
+                        placeholder="HOSNY10"
+                        className="flex-1 p-2.5 rounded-xl bg-[#001c15] border border-white/20 text-white font-mono uppercase text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyPromo}
+                        className="px-4 py-2.5 rounded-xl bg-[#00473e] hover:bg-[#00cb87] hover:text-slate-950 text-white font-bold text-xs transition"
+                      >
+                        تطبيق
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-4 rounded-2xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-sm shadow-xl transition flex items-center justify-center gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>تأكيد الحجز والدفع بالعيادة ({netTotalPrice} ج.م)</span>
+                  </button>
+
+                  <div className="text-[11px] text-slate-400 text-center leading-relaxed">
+                    * الدفع يتم بالكامل في مقر العيادة عند الحضور.
+                  </div>
+
+                </div>
               </div>
 
-              <div>
-                <label className="block text-slate-300 font-bold mb-1.5">{t('branch_select')} *</label>
-                <select
-                  value={bookingBranch}
-                  onChange={e => setBookingBranch(e.target.value)}
-                  className="w-full p-3.5 rounded-2xl bg-[#001c15] border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-[#00cb87] font-bold"
-                >
-                  {doctorInfo.branches.map(b => (
-                    <option key={b.id} value={b.id}>
-                      {lang === 'ar' ? b.city_ar : b.city_en}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-end">
-                <button
-                  type="submit"
-                  className="w-full py-4 rounded-2xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow-xl transition flex items-center justify-center gap-2"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>تأكيد طلب الحجز الآن</span>
-                </button>
-              </div>
             </form>
           )}
+
         </div>
       </section>
 
-      {/* 6. ENTERPRISE FOOTER */}
+      {/* 5. ENTERPRISE FOOTER */}
       <footer className="bg-[#001c15] text-white p-6 sm:p-10 md:p-16 rounded-3xl mx-2 sm:mx-6 border border-[#00cb87]/30 space-y-8 sm:space-y-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div className="space-y-3">
@@ -451,20 +532,17 @@ export const DoctorProfileLanding: React.FC = () => {
             </ul>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-1 text-amber-300">
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <span className="text-xs text-slate-300 font-bold ml-1">4.9 / 5.0</span>
-            </div>
-            <p className="text-xs text-slate-300 font-bold">بناءً على تقييم أكثر من +3,000 مريضة موثقة بمصر ⭐⭐⭐⭐⭐</p>
-            <div className="text-[11px] text-slate-400 pt-2 font-mono">
-              © 2026 Dr. Mohamed Hosny Ali Clinics. All rights reserved.
+          <div className="space-y-2 text-xs">
+            <h4 className="font-extrabold text-[#00cb87] uppercase tracking-wider">للتواصل المباشر</h4>
+            <div className="text-slate-300 font-mono space-y-1">
+              <div>الهاتف: {doctorInfo.contact_phone}</div>
+              <div>واتساب: {doctorInfo.whatsapp_phone}</div>
             </div>
           </div>
+        </div>
+
+        <div className="pt-6 border-t border-white/10 text-center text-xs text-slate-400">
+          جميع الحقوق محفوظة © 2026 عيادات الدكتور محمد حسني علي.
         </div>
       </footer>
     </div>
