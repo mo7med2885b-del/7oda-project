@@ -82,35 +82,39 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const [userRole, setUserRole] = useState<UserRole>('Admin');
 
-  const [patients, setPatients] = useState<Patient[]>(() => {
-    const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}_patients`);
-    return saved ? JSON.parse(saved) : INITIAL_PATIENTS;
-  });
+  const safeParse = <T,>(key: string, fallback: T): T => {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved ? (JSON.parse(saved) as T) : fallback;
+    } catch (err) {
+      console.warn(`Fallback to default seed for ${key}`, err);
+      return fallback;
+    }
+  };
 
-  const [appointments, setAppointments] = useState<Appointment[]>(() => {
-    const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}_appointments`);
-    return saved ? JSON.parse(saved) : INITIAL_APPOINTMENTS;
-  });
+  const [patients, setPatients] = useState<Patient[]>(() =>
+    safeParse(`${LOCAL_STORAGE_KEY}_patients`, INITIAL_PATIENTS)
+  );
 
-  const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>(() => {
-    const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}_records`);
-    return saved ? JSON.parse(saved) : INITIAL_MEDICAL_RECORDS;
-  });
+  const [appointments, setAppointments] = useState<Appointment[]>(() =>
+    safeParse(`${LOCAL_STORAGE_KEY}_appointments`, INITIAL_APPOINTMENTS)
+  );
 
-  const [invoices, setInvoices] = useState<Invoice[]>(() => {
-    const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}_invoices`);
-    return saved ? JSON.parse(saved) : INITIAL_INVOICES;
-  });
+  const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>(() =>
+    safeParse(`${LOCAL_STORAGE_KEY}_records`, INITIAL_MEDICAL_RECORDS)
+  );
 
-  const [expenses, setExpenses] = useState<Expense[]>(() => {
-    const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}_expenses`);
-    return saved ? JSON.parse(saved) : INITIAL_EXPENSES;
-  });
+  const [invoices, setInvoices] = useState<Invoice[]>(() =>
+    safeParse(`${LOCAL_STORAGE_KEY}_invoices`, INITIAL_INVOICES)
+  );
 
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
-    const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}_logs`);
-    return saved ? JSON.parse(saved) : INITIAL_AUDIT_LOGS;
-  });
+  const [expenses, setExpenses] = useState<Expense[]>(() =>
+    safeParse(`${LOCAL_STORAGE_KEY}_expenses`, INITIAL_EXPENSES)
+  );
+
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() =>
+    safeParse(`${LOCAL_STORAGE_KEY}_logs`, INITIAL_AUDIT_LOGS)
+  );
 
   const setPortalMode = (mode: PortalMode) => {
     setPortalModeState(mode);
