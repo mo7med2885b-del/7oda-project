@@ -200,6 +200,72 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
     status: 'Scheduled',
     reason: 'متابعة حمل التوأم ونبض الجنين بالسونار (Twin Pregnancy Fetal Wellbeing)',
     type: 'High-Risk OB'
+  },
+  {
+    id: 'apt-209',
+    patient_id: 'pat-online-1',
+    patient_name: 'نور محمد (Nour Mohamed)',
+    appointment_date: '2026-09-01',
+    start_time: '12:00',
+    end_time: '12:30',
+    status: 'Scheduled',
+    reason: 'كشف استشاري وتقييم أولي [أونلاين]',
+    type: 'Consultation'
+  },
+  {
+    id: 'apt-210',
+    patient_id: 'pat-online-2',
+    patient_name: 'أماني مصطفى (Amani Mostafa)',
+    appointment_date: '2026-09-01',
+    start_time: '16:00',
+    end_time: '16:30',
+    status: 'Scheduled',
+    reason: 'متابعة تبويض وسونار مهبلي [أونلاين]',
+    type: 'Ultrasound'
+  },
+  {
+    id: 'apt-211',
+    patient_id: 'pat-online-3',
+    patient_name: 'دعاء حسن (Doaa Hassan)',
+    appointment_date: '2026-09-02',
+    start_time: '09:00',
+    end_time: '09:30',
+    status: 'Scheduled',
+    reason: 'بروتوكول الحقن المجهري (ICSI Protocol) [أونلاين]',
+    type: 'ICSI Protocol'
+  },
+  {
+    id: 'apt-212',
+    patient_id: 'pat-online-4',
+    patient_name: 'سلمى سعيد (Salma Saeed)',
+    appointment_date: '2026-09-02',
+    start_time: '14:30',
+    end_time: '15:00',
+    status: 'Scheduled',
+    reason: 'منظار رحمي وسحب بويضات [أونلاين]',
+    type: 'Laparoscopy'
+  },
+  {
+    id: 'apt-213',
+    patient_id: 'pat-online-5',
+    patient_name: 'فرح عبد الله (Farah Abdullah)',
+    appointment_date: '2026-09-03',
+    start_time: '10:30',
+    end_time: '11:00',
+    status: 'Scheduled',
+    reason: 'كشف استشاري وتقييم أولي [أونلاين]',
+    type: 'Consultation'
+  },
+  {
+    id: 'apt-214',
+    patient_id: 'pat-online-6',
+    patient_name: 'ليلى طارق (Laila Tarek)',
+    appointment_date: '2026-09-03',
+    start_time: '18:00',
+    end_time: '18:30',
+    status: 'Scheduled',
+    reason: 'متابعة تبويض وسونار مهبلي [أونلاين]',
+    type: 'Ultrasound'
   }
 ];
 

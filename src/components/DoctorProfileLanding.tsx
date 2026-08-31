@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 
 export const DoctorProfileLanding: React.FC = () => {
-  const { lang, addAppointment } = useClinic();
+  const { lang, addAppointment, appointments } = useClinic();
 
   // Booking Form & Checkout State
   const [bookingName, setBookingName] = useState('');
@@ -79,6 +79,21 @@ export const DoctorProfileLanding: React.FC = () => {
   const discountPercent = discountApplied ? 10 : 0;
   const discountValue = (selectedService.price * discountPercent) / 100;
   const netTotalPrice = Math.max(0, selectedService.price - discountValue);
+
+  // Convert 12-hour AM/PM string to 24-hour time to match backend/seed data format
+  const convertTo24Hour = (time12h: string) => {
+    const [time, modifier] = time12h.split(' ');
+    let [hours, minutes] = time.split(':');
+    if (hours === '12') hours = '00';
+    if (modifier === 'PM') hours = String(parseInt(hours, 10) + 12);
+    return `${hours.padStart(2, '0')}:${minutes}`;
+  };
+
+  const isTimeSlotBooked = (dateStr: string, slotStr: string) => {
+    const slot24 = convertTo24Hour(slotStr);
+    const slotHour = slot24.split(':')[0];
+    return appointments.some(apt => apt.appointment_date === dateStr && apt.start_time.startsWith(slotHour));
+  };
 
   const handleApplyPromo = () => {
     if (promoCode.trim().toUpperCase() === 'HOSNY10' || promoCode.trim() === 'خصم10') {
@@ -363,15 +378,34 @@ export const DoctorProfileLanding: React.FC = () => {
 
                   <div className="space-y-1.5">
                     <label className="block text-white font-extrabold">4. توقيت الحجز المناسب *</label>
-                    <select
-                      value={selectedTimeSlot}
-                      onChange={e => setSelectedTimeSlot(e.target.value)}
-                      className="w-full p-3 rounded-xl bg-[#00261c] border border-white/20 text-white font-bold"
-                    >
-                      {timeSlots.map(ts => (
-                        <option key={ts} value={ts}>{ts}</option>
-                      ))}
-                    </select>
+                    <div className="grid grid-cols-3 gap-2">
+                      {timeSlots.map(ts => {
+                        const booked = isTimeSlotBooked(selectedDate, ts);
+                        const isSelected = selectedTimeSlot === ts;
+                        return (
+                          <button
+                            key={ts}
+                            type="button"
+                            disabled={booked}
+                            onClick={() => setSelectedTimeSlot(ts)}
+                            className={`p-2 rounded-xl border text-[11px] font-mono font-bold transition flex flex-col items-center justify-center gap-1 ${
+                              booked
+                                ? 'bg-rose-500/10 border-rose-400/30 text-rose-600/70 cursor-not-allowed opacity-75'
+                                : isSelected
+                                ? 'bg-[#00cb87] text-slate-950 border-[#00cb87] shadow-lg scale-105'
+                                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-[#00cb87] hover:text-slate-950'
+                            }`}
+                          >
+                            <span>{ts}</span>
+                            {booked ? (
+                              <span className="text-[8px] font-black bg-rose-500 text-white px-1.5 py-0.5 rounded">مشغول</span>
+                            ) : (
+                              <span className="text-[8px] font-black bg-emerald-600 text-white px-1.5 py-0.5 rounded">متاح</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
