@@ -80,38 +80,6 @@ export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = (
     sendQuery(msg);
   };
 
-  // Helper to Render Markdown (Bold, Lists, Headers) inside AI Chat Bubbles
-  const renderMarkdownContent = (text: string) => {
-    const lines = text.split('\n');
-    return lines.map((line, idx) => {
-      if (line.startsWith('### ')) {
-        return <h4 key={idx} className="font-bold text-xs text-[#00cb87] mt-1.5 mb-1">{parseBold(line.replace('### ', ''))}</h4>;
-      }
-      if (line.startsWith('## ')) {
-        return <h3 key={idx} className="font-extrabold text-xs text-[#00cb87] mt-2 mb-1">{parseBold(line.replace('## ', ''))}</h3>;
-      }
-      if (line.startsWith('# ')) {
-        return <h2 key={idx} className="font-black text-sm text-[#00cb87] mt-2 mb-1">{parseBold(line.replace('# ', ''))}</h2>;
-      }
-
-      if (line.trim().startsWith('* ') || line.trim().startsWith('- ') || /^\d+\.\s/.test(line.trim())) {
-        const listContent = line.trim().replace(/^(\*|-|\d+\.)\s*/, '');
-        return (
-          <div key={idx} className="flex items-start gap-1.5 my-0.5 pr-2 rtl:pr-2 rtl:pl-0">
-            <span className="text-[#00cb87] font-bold shrink-0">•</span>
-            <span>{parseBold(listContent)}</span>
-          </div>
-        );
-      }
-
-      if (!line.trim()) {
-        return <div key={idx} className="h-1" />;
-      }
-
-      return <div key={idx} className="my-0.5 leading-relaxed">{parseBold(line)}</div>;
-    });
-  };
-
   const parseBold = (text: string) => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, i) => {
@@ -120,6 +88,93 @@ export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = (
       }
       return part;
     });
+  };
+
+  // Advanced Markdown Renderer supporting Tables, Headers, Bold, and Lists
+  const renderMarkdownContent = (text: string) => {
+    const rawLines = text.split('\n');
+    const elements: React.ReactNode[] = [];
+
+    let i = 0;
+    while (i < rawLines.length) {
+      const line = rawLines[i];
+
+      // Check if current line starts a Markdown Table
+      if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+        const tableLines: string[] = [];
+        while (i < rawLines.length && rawLines[i].trim().startsWith('|') && rawLines[i].trim().endsWith('|')) {
+          tableLines.push(rawLines[i].trim());
+          i++;
+        }
+
+        if (tableLines.length >= 2) {
+          // Parse Header
+          const headerCells = tableLines[0]
+            .split('|')
+            .map(c => c.trim())
+            .filter(c => c !== '');
+
+          // Filter out separator lines (| --- | --- |)
+          const dataRows = tableLines.slice(1).filter(row => !/^\|[\s\-:]+\|/.test(row)).map(row =>
+            row
+              .split('|')
+              .map(c => c.trim())
+              .filter(c => c !== '')
+          );
+
+          elements.push(
+            <div key={`table-${i}`} className="my-2.5 overflow-x-auto rounded-xl border border-[#00cb87]/30 bg-[#001c15] shadow-md">
+              <table className="w-full text-left rtl:text-right border-collapse text-[11px]">
+                <thead>
+                  <tr className="bg-[#00473e] text-[#00cb87] border-b border-[#00cb87]/30 font-bold uppercase tracking-wider">
+                    {headerCells.map((h, hIdx) => (
+                      <th key={hIdx} className="py-2 px-3">{parseBold(h)}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#00cb87]/20">
+                  {dataRows.map((r, rIdx) => (
+                    <tr key={rIdx} className="hover:bg-[#00261c]/60 transition">
+                      {r.map((cell, cIdx) => (
+                        <td key={cIdx} className="py-2 px-3 text-slate-200 font-medium">{parseBold(cell)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+          continue;
+        }
+      }
+
+      // Headers
+      if (line.startsWith('### ')) {
+        elements.push(<h4 key={i} className="font-bold text-xs text-[#00cb87] mt-2 mb-1">{parseBold(line.replace('### ', ''))}</h4>);
+      } else if (line.startsWith('## ')) {
+        elements.push(<h3 key={i} className="font-extrabold text-xs text-[#00cb87] mt-2.5 mb-1">{parseBold(line.replace('## ', ''))}</h3>);
+      } else if (line.startsWith('# ')) {
+        elements.push(<h2 key={i} className="font-black text-sm text-[#00cb87] mt-3 mb-1.5">{parseBold(line.replace('# ', ''))}</h2>);
+      } else if (line.trim().startsWith('* ') || line.trim().startsWith('- ') || /^\d+\.\s/.test(line.trim())) {
+        const listContent = line.trim().replace(/^(\*|-|\d+\.)\s*/, '');
+        elements.push(
+          <div key={i} className="flex items-start gap-1.5 my-1 pr-2 rtl:pr-2 rtl:pl-0">
+            <span className="text-[#00cb87] font-bold shrink-0">•</span>
+            <span className="leading-relaxed">{parseBold(listContent)}</span>
+          </div>
+        );
+      } else if (line.trim() === '---') {
+        elements.push(<hr key={i} className="my-2.5 border-[#00cb87]/30" />);
+      } else if (!line.trim()) {
+        elements.push(<div key={i} className="h-1.5" />);
+      } else {
+        elements.push(<div key={i} className="my-0.5 leading-relaxed">{parseBold(line)}</div>);
+      }
+
+      i++;
+    }
+
+    return elements;
   };
 
   if (!isOpen) return null;
@@ -142,7 +197,7 @@ export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = (
           </div>
         </div>
 
-        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white">
+        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition">
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -169,7 +224,7 @@ export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = (
             )}
 
             <div
-              className={`p-3 rounded-2xl max-w-[85%] ${
+              className={`p-3.5 rounded-2xl max-w-[90%] ${
                 msg.role === 'user'
                   ? 'bg-[#00473e] text-white font-medium rounded-tr-none'
                   : 'bg-[#001c15] border border-[#00cb87]/20 text-slate-100 rounded-tl-none shadow'
@@ -187,7 +242,7 @@ export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = (
         ))}
 
         {loading && (
-          <div className="flex items-center gap-2 text-xs text-[#00cb87] p-2 bg-[#001c15] rounded-xl border border-[#00cb87]/20 w-fit">
+          <div className="flex items-center gap-2 text-xs text-[#00cb87] p-2.5 bg-[#001c15] rounded-xl border border-[#00cb87]/30 w-fit shadow">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
             <span className="font-mono text-[11px]">{lang === 'ar' ? 'جارِ التحليل والرد بالذكاء الاصطناعي...' : 'AI analyzing request...'}</span>
           </div>
