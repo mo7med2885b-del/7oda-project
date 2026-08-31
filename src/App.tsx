@@ -44,8 +44,8 @@ const ClinicAppContent: React.FC = () => {
     <div
       className={`min-h-screen flex flex-col transition-colors relative ${
         portalMode === 'admin'
-          ? 'dark:bg-[#082930] bg-[#f0f8f8]'
-          : 'dark:bg-[#00101f] bg-slate-50'
+          ? 'dark:bg-[#00261c] bg-[#f5f2eb]'
+          : 'dark:bg-[#001c15] bg-[#f5f2eb]'
       }`}
     >
       <Header />
@@ -109,7 +109,7 @@ const ClinicAppContent: React.FC = () => {
       {portalMode === 'admin' && (
         <button
           onClick={() => setShowFeatherlessAiDrawer(!showFeatherlessAiDrawer)}
-          className="fixed bottom-6 right-6 z-40 px-4 py-3 rounded-full bg-[#00e599] text-slate-950 font-black text-xs shadow-2xl border border-cyan-400 flex items-center gap-2 hover:scale-105 transition transform"
+          className="fixed bottom-6 right-6 z-40 px-4.5 py-3 rounded-full bg-[#00cb87] text-slate-950 font-black text-xs shadow-2xl border border-emerald-400 flex items-center gap-2 hover:scale-105 transition transform"
         >
           <Sparkles className="w-4 h-4 text-slate-950 animate-spin-slow" />
           <span>المساعد الذكي</span>

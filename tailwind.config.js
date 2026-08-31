@@ -9,28 +9,35 @@ export default {
     extend: {
       colors: {
         dark: {
-          bg: '#00101f',
-          surface: '#00182e',
-          card: 'rgba(0, 24, 46, 0.75)',
-          border: 'rgba(0, 217, 255, 0.15)',
-          accent: '#00d9ff',
-          hover: '#00284c',
-          text: '#f1f5f9',
-          muted: '#94a3b8'
+          bg: '#00261c',
+          surface: '#023326',
+          card: 'rgba(4, 62, 48, 0.85)',
+          border: 'rgba(0, 203, 135, 0.2)',
+          accent: '#00cb87',
+          hover: '#054737',
+          text: '#f5f2eb',
+          muted: '#a3c2b8'
         },
         light: {
-          bg: '#f8fafc',
+          bg: '#f5f2eb',
           surface: '#ffffff',
           card: '#ffffff',
-          border: '#e2e8f0',
-          accent: '#0284c7',
-          hover: '#f1f5f9',
-          text: '#0f172a',
-          muted: '#64748b'
+          border: '#e3ded5',
+          accent: '#00473e',
+          hover: '#ece7de',
+          text: '#122620',
+          muted: '#52665e'
+        },
+        forest: {
+          DEFAULT: '#00473e',
+          dark: '#00261c',
+          deep: '#011c15',
+          light: '#f5f2eb',
+          mint: '#00cb87'
         }
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+        sans: ['Tajawal', 'Cairo', '"Plus Jakarta Sans"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace']
       }
     },

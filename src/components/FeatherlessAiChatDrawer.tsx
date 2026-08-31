@@ -69,15 +69,15 @@ export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = (
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-[#082930] border-l border-cyan-400/30 shadow-2xl flex flex-col text-white transition-all transform duration-300">
+    <div className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-[#00261c] border-l border-[#00cb87]/30 shadow-2xl flex flex-col text-white transition-all transform duration-300">
       {/* Clean Drawer Header */}
-      <div className="p-4 bg-[#051c22] border-b border-white/10 flex items-center justify-between">
+      <div className="p-4 bg-[#001c15] border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-[#00e599] text-slate-950 flex items-center justify-center font-bold shadow">
+          <div className="w-9 h-9 rounded-xl bg-[#00cb87] text-slate-950 flex items-center justify-center font-bold shadow">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-cyan-300">
+            <h3 className="font-bold text-sm text-[#00cb87]">
               {lang === 'ar' ? 'المساعد الطبي الذكي' : 'Clinical AI Co-Pilot'}
             </h3>
             <p className="text-[11px] text-slate-300">
@@ -107,7 +107,7 @@ export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = (
             className={`flex gap-2.5 leading-relaxed ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {msg.role === 'assistant' && (
-              <div className="w-7 h-7 rounded-lg bg-[#15606e] text-cyan-300 flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-[#00473e] text-[#00cb87] flex items-center justify-center shrink-0">
                 <Bot className="w-3.5 h-3.5" />
               </div>
             )}
@@ -115,15 +115,15 @@ export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = (
             <div
               className={`p-3 rounded-2xl max-w-[85%] whitespace-pre-wrap ${
                 msg.role === 'user'
-                  ? 'bg-[#15606e] text-white font-medium rounded-tr-none'
-                  : 'bg-[#051c22] border border-cyan-500/20 text-slate-100 rounded-tl-none shadow'
+                  ? 'bg-[#00473e] text-white font-medium rounded-tr-none'
+                  : 'bg-[#001c15] border border-[#00cb87]/20 text-slate-100 rounded-tl-none shadow'
               }`}
             >
               {msg.content}
             </div>
 
             {msg.role === 'user' && (
-              <div className="w-7 h-7 rounded-lg bg-[#00e599] text-slate-950 flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-[#00cb87] text-slate-950 flex items-center justify-center shrink-0">
                 <User className="w-3.5 h-3.5" />
               </div>
             )}
@@ -131,7 +131,7 @@ export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = (
         ))}
 
         {loading && (
-          <div className="flex items-center gap-2 text-xs text-cyan-300">
+          <div className="flex items-center gap-2 text-xs text-[#00cb87]">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
             <span className="font-mono text-[11px]">{lang === 'ar' ? 'جارِ التحقق من الجدول والرد...' : 'Checking calendar & replying...'}</span>
           </div>
@@ -140,18 +140,18 @@ export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = (
       </div>
 
       {/* Input Bar */}
-      <form onSubmit={handleSendMessage} className="p-3 bg-[#051c22] border-t border-white/10 flex items-center gap-2">
+      <form onSubmit={handleSendMessage} className="p-3 bg-[#001c15] border-t border-white/10 flex items-center gap-2">
         <input
           type="text"
           value={inputMessage}
           onChange={e => setInputMessage(e.target.value)}
           placeholder={lang === 'ar' ? 'اكتب سؤالك (مثال: ايه مواعيد النهاردة)...' : 'Type a question (e.g., today\'s schedule)...'}
-          className="flex-1 p-2.5 rounded-xl bg-slate-900 border border-cyan-500/30 text-white placeholder-slate-400 text-xs focus:outline-none focus:border-cyan-400"
+          className="flex-1 p-2.5 rounded-xl bg-[#00261c] border border-[#00cb87]/30 text-white placeholder-slate-400 text-xs focus:outline-none focus:border-[#00cb87]"
         />
         <button
           type="submit"
           disabled={loading || !inputMessage.trim()}
-          className="p-2.5 rounded-xl bg-[#00e599] hover:bg-[#00c985] text-slate-950 font-black disabled:opacity-50 transition shadow"
+          className="p-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black disabled:opacity-50 transition shadow"
         >
           <Send className="w-4 h-4" />
         </button>
