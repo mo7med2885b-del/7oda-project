@@ -11,35 +11,42 @@ interface PatientDossierModalProps {
 }
 
 export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patientId, onClose, onOpenSoapEditor, onOpenAiPrompt }) => {
-  const { getPatientById, getMedicalRecordsByPatient, getInvoicesByPatient, appointments } = useClinic();
+  const { getPatientById, getMedicalRecordsByPatient, getInvoicesByPatient, appointments, getAttachmentsByPatient, uploadAttachment, deleteAttachment, getAttachmentUrl } = useClinic();
 
   const patient = getPatientById(patientId);
   const records = getMedicalRecordsByPatient(patientId);
   const invoices = getInvoicesByPatient(patientId);
   const patientAppointments = appointments.filter(a => a.patient_id === patientId);
+  const patientAttachments = getAttachmentsByPatient(patientId);
+  const prescriptionImages = patientAttachments.filter(a => a.category === 'prescription');
+  const labFiles = patientAttachments.filter(a => a.category === 'lab_report' || a.category === 'scan' || a.category === 'other');
 
   const [activeTab, setActiveTab] = useState<'visits' | 'prescriptions' | 'billing' | 'labs'>('visits');
-  const [labFiles, setLabFiles] = useState<{ id: string; name: string; date: string; size: string }[]>([
-    { id: 'lab-1', name: 'Comprehensive Blood Count & Hormonal Panel.pdf', date: '2026-08-15', size: '1.2 MB' },
-    { id: 'lab-2', name: 'Pelvic Ultrasonography Report.pdf', date: '2026-07-20', size: '3.4 MB' }
-  ]);
+  const [uploadingPrescription, setUploadingPrescription] = useState(false);
+  const [uploadingLab, setUploadingLab] = useState(false);
+  const [viewingAttachmentId, setViewingAttachmentId] = useState<string | null>(prescriptionImages[0]?.id || null);
 
   if (!patient) return null;
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setLabFiles(prev => [
-        {
-          id: `lab-${Date.now()}`,
-          name: file.name,
-          date: new Date().toISOString().split('T')[0],
-          size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-        },
-        ...prev
-      ]);
-    }
+  const handlePrescriptionUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPrescription(true);
+    await uploadAttachment(patientId, file, 'prescription');
+    setUploadingPrescription(false);
+    e.target.value = '';
   };
+
+  const handleLabFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLab(true);
+    await uploadAttachment(patientId, file, 'lab_report');
+    setUploadingLab(false);
+    e.target.value = '';
+  };
+
+  const formatSize = (bytes?: number) => (bytes ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : '');
 
   const handleAiAnalysis = () => {
     if (!onOpenAiPrompt) return;
@@ -106,7 +113,7 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
             }`}
           >
             <FileText className="w-4 h-4 text-[#00cb87]" />
-            <span>Prescriptions ({records.reduce((acc, r) => acc + (r.prescription_json?.length || 0), 0)})</span>
+            <span>Prescriptions ({records.reduce((acc, r) => acc + (r.prescription_json?.length || 0), 0) + prescriptionImages.length})</span>
           </button>
 
           <button
@@ -183,24 +190,100 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
 
           {/* Tab 2: Prescriptions */}
           {activeTab === 'prescriptions' && (
-            <div className="space-y-3">
-              <h4 className="font-bold text-[#122620] dark:text-white">Prescription Log</h4>
-              {records.flatMap(r => r.prescription_json || []).length === 0 ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-[#122620] dark:text-white">Prescription Log</h4>
+                <label className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 font-bold text-[#122620] dark:text-white hover:text-[#00cb87] cursor-pointer flex items-center gap-1.5 transition">
+                  <Upload className="w-4 h-4 text-[#00cb87]" />
+                  <span>{uploadingPrescription ? 'Uploading...' : 'Upload Prescription Image'}</span>
+                  <input type="file" onChange={handlePrescriptionUpload} className="hidden" accept="image/*,.pdf" disabled={uploadingPrescription} />
+                </label>
+              </div>
+
+              {records.flatMap(r => r.prescription_json || []).length === 0 && prescriptionImages.length === 0 ? (
                 <div className="p-8 text-center text-slate-500 dark:text-slate-400 border border-dashed rounded-2xl dark:border-[#00cb87]/30 border-[#e3ded5]">
                   No active prescriptions recorded.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {records.flatMap(r =>
-                    (r.prescription_json || []).map(p => (
-                      <div key={p.id} className="p-3.5 rounded-2xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm">
-                        <div className="font-bold text-[#00cb87] text-sm">{p.medication} ({p.dosage})</div>
-                        <div className="text-slate-600 dark:text-slate-300 mt-1 font-mono text-[11px]" dir="ltr">Frequency: {p.frequency} | Duration: {p.duration}</div>
-                        <div className="text-slate-500 dark:text-slate-400 italic mt-1">{p.instructions}</div>
+                <>
+                  {prescriptionImages.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-3">
+                      {/* Left: file list */}
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {prescriptionImages.map(att => (
+                          <div
+                            key={att.id}
+                            onClick={() => setViewingAttachmentId(att.id)}
+                            className={`relative group p-2 rounded-xl border cursor-pointer flex items-center gap-2 transition ${
+                              viewingAttachmentId === att.id
+                                ? 'border-[#00cb87] bg-[#00cb87]/10'
+                                : 'border-[#e3ded5] dark:border-[#00cb87]/30 bg-white dark:bg-[#001c15]'
+                            }`}
+                          >
+                            {att.mime_type?.startsWith('image/') ? (
+                              <img src={getAttachmentUrl(att.file_path)} alt={att.file_name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-[#ece7de] dark:bg-slate-800 flex items-center justify-center shrink-0">
+                                <File className="w-5 h-5 text-[#00cb87]" />
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-[11px] font-bold text-[#122620] dark:text-white">{att.file_name}</div>
+                              <div className="text-[9px] text-slate-500 dark:text-slate-400" dir="ltr">{att.created_at.split('T')[0]} {formatSize(att.file_size)}</div>
+                            </div>
+                            <button
+                              onClick={e => {
+                                e.stopPropagation();
+                                if (viewingAttachmentId === att.id) setViewingAttachmentId(null);
+                                deleteAttachment(att.id);
+                              }}
+                              className="p-1 rounded-lg text-slate-400 hover:text-rose-500 transition shrink-0"
+                              title="Delete"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))
+
+                      {/* Right: preview panel */}
+                      <div className="rounded-2xl border border-[#e3ded5] dark:border-[#00cb87]/30 bg-white dark:bg-[#001c15] p-3 flex items-center justify-center min-h-[280px]">
+                        {(() => {
+                          const active = prescriptionImages.find(a => a.id === viewingAttachmentId) || prescriptionImages[0];
+                          if (!active) return null;
+                          return active.mime_type?.startsWith('image/') ? (
+                            <a href={getAttachmentUrl(active.file_path)} target="_blank" rel="noopener noreferrer" className="w-full">
+                              <img src={getAttachmentUrl(active.file_path)} alt={active.file_name} className="max-h-96 w-full object-contain rounded-xl" />
+                            </a>
+                          ) : (
+                            <a
+                              href={getAttachmentUrl(active.file_path)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex flex-col items-center gap-2 text-[#00cb87] font-bold text-xs"
+                            >
+                              <File className="w-12 h-12" />
+                              <span>{active.file_name}</span>
+                              <span className="text-slate-500 dark:text-slate-400 font-normal">Open document</span>
+                            </a>
+                          );
+                        })()}
+                      </div>
+                    </div>
                   )}
-                </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {records.flatMap(r =>
+                      (r.prescription_json || []).map(p => (
+                        <div key={p.id} className="p-3.5 rounded-2xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm">
+                          <div className="font-bold text-[#00cb87] text-sm">{p.medication} ({p.dosage})</div>
+                          <div className="text-slate-600 dark:text-slate-300 mt-1 font-mono text-[11px]" dir="ltr">Frequency: {p.frequency} | Duration: {p.duration}</div>
+                          <div className="text-slate-500 dark:text-slate-400 italic mt-1">{p.instructions}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -248,30 +331,47 @@ export const PatientDossierModal: React.FC<PatientDossierModalProps> = ({ patien
                 <h4 className="font-bold text-[#122620] dark:text-white">Lab Diagnostics & Scans</h4>
                 <label className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 font-bold text-[#122620] dark:text-white hover:text-[#00cb87] cursor-pointer flex items-center gap-1.5 transition">
                   <Upload className="w-4 h-4 text-[#00cb87]" />
-                  <span>Upload Document / Lab PDF</span>
-                  <input type="file" onChange={handleFileUpload} className="hidden" accept=".pdf,.png,.jpg,.jpeg" />
+                  <span>{uploadingLab ? 'Uploading...' : 'Upload Document / Lab PDF'}</span>
+                  <input type="file" onChange={handleLabFileUpload} className="hidden" accept=".pdf,.png,.jpg,.jpeg" disabled={uploadingLab} />
                 </label>
               </div>
 
-              <div className="space-y-2">
-                {labFiles.map(file => (
-                  <div key={file.id} className="p-3.5 rounded-2xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/30 flex items-center justify-between shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <File className="w-5 h-5 text-[#00cb87]" />
-                      <div>
-                        <div className="font-bold text-[#122620] dark:text-white">{file.name}</div>
-                        <div className="text-slate-500 dark:text-slate-400 text-[10px]" dir="ltr">Uploaded: {file.date} | Size: {file.size}</div>
+              {labFiles.length === 0 ? (
+                <div className="p-8 text-center text-slate-500 dark:text-slate-400 border border-dashed rounded-2xl dark:border-[#00cb87]/30 border-[#e3ded5]">
+                  No lab reports or scans uploaded yet.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {labFiles.map(file => (
+                    <div key={file.id} className="p-3.5 rounded-2xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/30 flex items-center justify-between shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <File className="w-5 h-5 text-[#00cb87]" />
+                        <div>
+                          <div className="font-bold text-[#122620] dark:text-white">{file.file_name}</div>
+                          <div className="text-slate-500 dark:text-slate-400 text-[10px]" dir="ltr">Uploaded: {file.created_at.split('T')[0]} | Size: {formatSize(file.file_size)}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={getAttachmentUrl(file.file_path)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-xl bg-[#00cb87]/15 text-[#00cb87] font-bold text-xs hover:bg-[#00cb87] hover:text-slate-950 transition"
+                        >
+                          View Report
+                        </a>
+                        <button
+                          onClick={() => deleteAttachment(file.id)}
+                          className="p-1.5 rounded-xl text-slate-400 hover:text-rose-500 transition"
+                          title="Delete"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-                    <button
-                      onClick={() => alert(`Opening preview for document: ${file.name}`)}
-                      className="px-3 py-1.5 rounded-xl bg-[#00cb87]/15 text-[#00cb87] font-bold text-xs hover:bg-[#00cb87] hover:text-slate-950 transition"
-                    >
-                      View Report
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

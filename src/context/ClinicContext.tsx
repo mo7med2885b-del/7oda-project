@@ -1,14 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Patient, Appointment, MedicalRecord, Invoice, Expense, AuditLog, AppointmentStatus } from '../types';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Patient, Appointment, MedicalRecord, Invoice, Expense, AuditLog, AppointmentStatus, PatientAttachment, AttachmentCategory } from '../types';
 import { translations, Language } from '../utils/i18n';
-import {
-  INITIAL_PATIENTS,
-  INITIAL_APPOINTMENTS,
-  INITIAL_MEDICAL_RECORDS,
-  INITIAL_INVOICES,
-  INITIAL_EXPENSES,
-  INITIAL_AUDIT_LOGS
-} from '../data/seedData';
+import { supabase, ATTACHMENTS_BUCKET } from '../utils/supabaseClient';
 
 type UserRole = 'Admin' | 'Doctor' | 'Receptionist' | 'Accountant';
 type ThemeMode = 'light' | 'dark';
@@ -24,46 +17,52 @@ interface ClinicContextType {
   setPortalMode: (mode: PortalMode) => void;
   userRole: UserRole;
   setUserRole: (role: UserRole) => void;
+  loading: boolean;
   patients: Patient[];
   appointments: Appointment[];
   medicalRecords: MedicalRecord[];
   invoices: Invoice[];
   expenses: Expense[];
   auditLogs: AuditLog[];
-  
+  attachments: PatientAttachment[];
+
   // Patient CRUD
-  addPatient: (patient: Omit<Patient, 'id' | 'created_at'>) => Patient;
-  updatePatient: (id: string, updated: Partial<Patient>) => void;
-  deletePatient: (id: string) => void;
+  addPatient: (patient: Omit<Patient, 'id' | 'created_at'>) => Promise<Patient | undefined>;
+  updatePatient: (id: string, updated: Partial<Patient>) => Promise<void>;
+  deletePatient: (id: string) => Promise<void>;
 
   // Appointment CRUD
-  addAppointment: (apt: Omit<Appointment, 'id' | 'created_at'>) => Appointment;
-  updateAppointment: (id: string, updated: Partial<Appointment>) => void;
-  updateAppointmentStatus: (id: string, status: AppointmentStatus) => void;
-  rescheduleAppointment: (id: string, date: string, startTime: string, endTime: string) => boolean;
+  addAppointment: (apt: Omit<Appointment, 'id' | 'created_at'>) => Promise<Appointment | undefined>;
+  updateAppointment: (id: string, updated: Partial<Appointment>) => Promise<void>;
+  updateAppointmentStatus: (id: string, status: AppointmentStatus) => Promise<void>;
+  rescheduleAppointment: (id: string, date: string, startTime: string, endTime: string) => Promise<boolean>;
 
   // EHR / Medical Records
-  addMedicalRecord: (rec: Omit<MedicalRecord, 'id' | 'created_at'>) => MedicalRecord;
+  addMedicalRecord: (rec: Omit<MedicalRecord, 'id' | 'created_at'>) => Promise<MedicalRecord | undefined>;
 
   // Invoices & Expenses
-  addInvoice: (inv: Omit<Invoice, 'id' | 'created_at' | 'invoice_number'>) => Invoice;
-  updateInvoiceStatus: (id: string, status: Invoice['payment_status'], paidAmount?: number) => void;
-  addExpense: (exp: Omit<Expense, 'id' | 'created_at'>) => Expense;
-  deleteExpense: (id: string) => void;
+  addInvoice: (inv: Omit<Invoice, 'id' | 'created_at' | 'invoice_number'>) => Promise<Invoice | undefined>;
+  updateInvoiceStatus: (id: string, status: Invoice['payment_status'], paidAmount?: number) => Promise<void>;
+  addExpense: (exp: Omit<Expense, 'id' | 'created_at'>) => Promise<Expense | undefined>;
+  deleteExpense: (id: string) => Promise<void>;
+
+  // Attachments (prescription images, lab reports, etc.)
+  uploadAttachment: (patientId: string, file: File, category?: AttachmentCategory, medicalRecordId?: string) => Promise<PatientAttachment | undefined>;
+  deleteAttachment: (id: string) => Promise<void>;
+  getAttachmentUrl: (filePath: string) => string;
+  getAttachmentsByPatient: (patientId: string) => PatientAttachment[];
 
   // Audit Logs
-  logAudit: (action: string, entityType: string, entityId: string, details?: Record<string, any>) => void;
+  logAudit: (action: string, entityType: string, entityId: string, details?: Record<string, any>) => Promise<void>;
 
   // Helper getters
   getPatientById: (id: string) => Patient | undefined;
   getMedicalRecordsByPatient: (patientId: string) => MedicalRecord[];
   getInvoicesByPatient: (patientId: string) => Invoice[];
-  resetToSeedData: () => void;
+  refreshAll: () => Promise<void>;
 }
 
 const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
-
-const LOCAL_STORAGE_KEY = 'MOHAMED_HOSNY_CLINIC_STORE_V3';
 
 export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<ThemeMode>(() => {
@@ -82,40 +81,15 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
 
   const [userRole, setUserRole] = useState<UserRole>('Admin');
+  const [loading, setLoading] = useState(true);
 
-  const safeParse = <T,>(key: string, fallback: T): T => {
-    try {
-      const saved = localStorage.getItem(key);
-      return saved ? (JSON.parse(saved) as T) : fallback;
-    } catch (err) {
-      console.warn(`Fallback to default seed for ${key}`, err);
-      return fallback;
-    }
-  };
-
-  const [patients, setPatients] = useState<Patient[]>(() =>
-    safeParse(`${LOCAL_STORAGE_KEY}_patients`, INITIAL_PATIENTS)
-  );
-
-  const [appointments, setAppointments] = useState<Appointment[]>(() =>
-    safeParse(`${LOCAL_STORAGE_KEY}_appointments`, INITIAL_APPOINTMENTS)
-  );
-
-  const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>(() =>
-    safeParse(`${LOCAL_STORAGE_KEY}_records`, INITIAL_MEDICAL_RECORDS)
-  );
-
-  const [invoices, setInvoices] = useState<Invoice[]>(() =>
-    safeParse(`${LOCAL_STORAGE_KEY}_invoices`, INITIAL_INVOICES)
-  );
-
-  const [expenses, setExpenses] = useState<Expense[]>(() =>
-    safeParse(`${LOCAL_STORAGE_KEY}_expenses`, INITIAL_EXPENSES)
-  );
-
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() =>
-    safeParse(`${LOCAL_STORAGE_KEY}_logs`, INITIAL_AUDIT_LOGS)
-  );
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [attachments, setAttachments] = useState<PatientAttachment[]>([]);
 
   const setPortalMode = (mode: PortalMode) => {
     setPortalModeState(mode);
@@ -139,29 +113,39 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     document.documentElement.setAttribute('lang', lang);
   }, [lang]);
 
-  useEffect(() => {
-    localStorage.setItem(`${LOCAL_STORAGE_KEY}_patients`, JSON.stringify(patients));
-  }, [patients]);
+  const refreshAll = useCallback(async () => {
+    setLoading(true);
+    const [
+      { data: patientsData },
+      { data: appointmentsData },
+      { data: recordsData },
+      { data: invoicesData },
+      { data: expensesData },
+      { data: logsData },
+      { data: attachmentsData }
+    ] = await Promise.all([
+      supabase.from('patients').select('*').order('created_at', { ascending: false }),
+      supabase.from('appointments').select('*').order('appointment_date', { ascending: false }),
+      supabase.from('medical_records').select('*').order('created_at', { ascending: false }),
+      supabase.from('invoices').select('*').order('created_at', { ascending: false }),
+      supabase.from('expenses').select('*').order('created_at', { ascending: false }),
+      supabase.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(200),
+      supabase.from('patient_attachments').select('*').order('created_at', { ascending: false })
+    ]);
+
+    setPatients(patientsData || []);
+    setAppointments(appointmentsData || []);
+    setMedicalRecords(recordsData || []);
+    setInvoices(invoicesData || []);
+    setExpenses(expensesData || []);
+    setAuditLogs(logsData || []);
+    setAttachments(attachmentsData || []);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(`${LOCAL_STORAGE_KEY}_appointments`, JSON.stringify(appointments));
-  }, [appointments]);
-
-  useEffect(() => {
-    localStorage.setItem(`${LOCAL_STORAGE_KEY}_records`, JSON.stringify(medicalRecords));
-  }, [medicalRecords]);
-
-  useEffect(() => {
-    localStorage.setItem(`${LOCAL_STORAGE_KEY}_invoices`, JSON.stringify(invoices));
-  }, [invoices]);
-
-  useEffect(() => {
-    localStorage.setItem(`${LOCAL_STORAGE_KEY}_expenses`, JSON.stringify(expenses));
-  }, [expenses]);
-
-  useEffect(() => {
-    localStorage.setItem(`${LOCAL_STORAGE_KEY}_logs`, JSON.stringify(auditLogs));
-  }, [auditLogs]);
+    refreshAll();
+  }, [refreshAll]);
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
@@ -175,64 +159,84 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return translations[lang]?.[key] || translations['en']?.[key] || key;
   };
 
-  const logAudit = (action: string, entityType: string, entityId: string, details?: Record<string, any>) => {
-    const newLog: AuditLog = {
-      id: `log-${Date.now()}`,
+  const logAudit = async (action: string, entityType: string, entityId: string, details?: Record<string, any>) => {
+    const newLog = {
       user_id: `usr-${userRole.toLowerCase()}-1`,
       user_role: userRole,
       action,
       entity_type: entityType,
       entity_id: entityId,
-      details,
+      details: details || null,
       timestamp: new Date().toISOString()
     };
-    setAuditLogs(prev => [newLog, ...prev]);
+    const { data, error } = await supabase.from('audit_logs').insert(newLog).select().single();
+    if (!error && data) setAuditLogs(prev => [data, ...prev]);
   };
 
-  const addPatient = (patData: Omit<Patient, 'id' | 'created_at'>) => {
-    const newPatient: Patient = {
-      ...patData,
-      id: `pat-${Date.now()}`,
-      created_at: new Date().toISOString()
-    };
-    setPatients(prev => [newPatient, ...prev]);
-    logAudit('Create Patient', 'Patient', newPatient.id, { name: newPatient.full_name });
-    return newPatient;
+  const addPatient = async (patData: Omit<Patient, 'id' | 'created_at'>) => {
+    const { data, error } = await supabase.from('patients').insert(patData).select().single();
+    if (error || !data) {
+      console.error('addPatient failed', error);
+      return undefined;
+    }
+    setPatients(prev => [data, ...prev]);
+    logAudit('Create Patient', 'Patient', data.id, { name: data.full_name });
+    return data;
   };
 
-  const updatePatient = (id: string, updated: Partial<Patient>) => {
+  const updatePatient = async (id: string, updated: Partial<Patient>) => {
+    const { error } = await supabase.from('patients').update(updated).eq('id', id);
+    if (error) {
+      console.error('updatePatient failed', error);
+      return;
+    }
     setPatients(prev => prev.map(p => (p.id === id ? { ...p, ...updated } : p)));
     logAudit('Update Patient', 'Patient', id, updated);
   };
 
-  const deletePatient = (id: string) => {
+  const deletePatient = async (id: string) => {
     const p = patients.find(p => p.id === id);
+    const { error } = await supabase.from('patients').delete().eq('id', id);
+    if (error) {
+      console.error('deletePatient failed', error);
+      return;
+    }
     setPatients(prev => prev.filter(p => p.id !== id));
     logAudit('Delete Patient', 'Patient', id, { name: p?.full_name });
   };
 
-  const addAppointment = (aptData: Omit<Appointment, 'id' | 'created_at'>) => {
-    const newApt: Appointment = {
-      ...aptData,
-      id: `apt-${Date.now()}`,
-      created_at: new Date().toISOString()
-    };
-    setAppointments(prev => [newApt, ...prev]);
-    logAudit('Schedule Appointment', 'Appointment', newApt.id, { patient: newApt.patient_name, date: newApt.appointment_date });
-    return newApt;
+  const addAppointment = async (aptData: Omit<Appointment, 'id' | 'created_at'>) => {
+    const { data, error } = await supabase.from('appointments').insert(aptData).select().single();
+    if (error || !data) {
+      console.error('addAppointment failed', error);
+      return undefined;
+    }
+    setAppointments(prev => [data, ...prev]);
+    logAudit('Schedule Appointment', 'Appointment', data.id, { patient: data.patient_name, date: data.appointment_date });
+    return data;
   };
 
-  const updateAppointment = (id: string, updated: Partial<Appointment>) => {
+  const updateAppointment = async (id: string, updated: Partial<Appointment>) => {
+    const { error } = await supabase.from('appointments').update(updated).eq('id', id);
+    if (error) {
+      console.error('updateAppointment failed', error);
+      return;
+    }
     setAppointments(prev => prev.map(a => (a.id === id ? { ...a, ...updated } : a)));
     logAudit('Update Appointment Details', 'Appointment', id, updated);
   };
 
-  const updateAppointmentStatus = (id: string, status: AppointmentStatus) => {
+  const updateAppointmentStatus = async (id: string, status: AppointmentStatus) => {
+    const { error } = await supabase.from('appointments').update({ status }).eq('id', id);
+    if (error) {
+      console.error('updateAppointmentStatus failed', error);
+      return;
+    }
     setAppointments(prev => prev.map(a => (a.id === id ? { ...a, status } : a)));
     logAudit('Update Appointment Status', 'Appointment', id, { status });
   };
 
-  const rescheduleAppointment = (id: string, date: string, startTime: string, endTime: string): boolean => {
+  const rescheduleAppointment = async (id: string, date: string, startTime: string, endTime: string): Promise<boolean> => {
     const aptToMove = appointments.find(a => a.id === id);
     if (!aptToMove) return false;
 
@@ -249,6 +253,15 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return false;
     }
 
+    const { error } = await supabase
+      .from('appointments')
+      .update({ appointment_date: date, start_time: startTime, end_time: endTime })
+      .eq('id', id);
+    if (error) {
+      console.error('rescheduleAppointment failed', error);
+      return false;
+    }
+
     setAppointments(prev =>
       prev.map(a => (a.id === id ? { ...a, appointment_date: date, start_time: startTime, end_time: endTime } : a))
     );
@@ -256,73 +269,137 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return true;
   };
 
-  const addMedicalRecord = (recData: Omit<MedicalRecord, 'id' | 'created_at'>) => {
-    const newRec: MedicalRecord = {
-      ...recData,
-      id: `rec-${Date.now()}`,
-      created_at: new Date().toISOString()
-    };
-    setMedicalRecords(prev => [newRec, ...prev]);
-    logAudit('Create SOAP Note', 'MedicalRecord', newRec.id, { diagnosis: newRec.diagnosis });
-    return newRec;
+  const addMedicalRecord = async (recData: Omit<MedicalRecord, 'id' | 'created_at'>) => {
+    const { data, error } = await supabase.from('medical_records').insert(recData).select().single();
+    if (error || !data) {
+      console.error('addMedicalRecord failed', error);
+      return undefined;
+    }
+    setMedicalRecords(prev => [data, ...prev]);
+    logAudit('Create SOAP Note', 'MedicalRecord', data.id, { diagnosis: data.diagnosis });
+    return data;
   };
 
-  const addInvoice = (invData: Omit<Invoice, 'id' | 'created_at' | 'invoice_number'>) => {
+  const addInvoice = async (invData: Omit<Invoice, 'id' | 'created_at' | 'invoice_number'>) => {
     const count = invoices.length + 1;
     const invNum = `INV-2026-${count.toString().padStart(3, '0')}`;
-    const newInv: Invoice = {
-      ...invData,
-      id: `inv-${Date.now()}`,
-      invoice_number: invNum,
-      created_at: new Date().toISOString()
-    };
-    setInvoices(prev => [newInv, ...prev]);
-    logAudit('Create Invoice', 'Invoice', newInv.id, { invoice_number: invNum, amount: newInv.total_amount });
-    return newInv;
+    const { data, error } = await supabase
+      .from('invoices')
+      .insert({ ...invData, invoice_number: invNum })
+      .select()
+      .single();
+    if (error || !data) {
+      console.error('addInvoice failed', error);
+      return undefined;
+    }
+    setInvoices(prev => [data, ...prev]);
+    logAudit('Create Invoice', 'Invoice', data.id, { invoice_number: invNum, amount: data.total_amount });
+    return data;
   };
 
-  const updateInvoiceStatus = (id: string, status: Invoice['payment_status'], paidAmount?: number) => {
-    setInvoices(prev =>
-      prev.map(inv => {
-        if (inv.id === id) {
-          const newPaid = paidAmount !== undefined ? paidAmount : status === 'Paid' ? inv.total_amount : inv.paid_amount;
-          return { ...inv, payment_status: status, paid_amount: newPaid };
-        }
-        return inv;
-      })
-    );
+  const updateInvoiceStatus = async (id: string, status: Invoice['payment_status'], paidAmount?: number) => {
+    const inv = invoices.find(i => i.id === id);
+    if (!inv) return;
+    const newPaid = paidAmount !== undefined ? paidAmount : status === 'Paid' ? inv.total_amount : inv.paid_amount;
+    const { error } = await supabase.from('invoices').update({ payment_status: status, paid_amount: newPaid }).eq('id', id);
+    if (error) {
+      console.error('updateInvoiceStatus failed', error);
+      return;
+    }
+    setInvoices(prev => prev.map(i => (i.id === id ? { ...i, payment_status: status, paid_amount: newPaid } : i)));
     logAudit('Update Invoice Payment', 'Invoice', id, { status, paidAmount });
   };
 
-  const addExpense = (expData: Omit<Expense, 'id' | 'created_at'>) => {
-    const newExp: Expense = {
-      ...expData,
-      id: `exp-${Date.now()}`,
-      created_at: new Date().toISOString()
-    };
-    setExpenses(prev => [newExp, ...prev]);
-    logAudit('Log Operating Expense', 'Expense', newExp.id, { category: newExp.category, amount: newExp.amount });
-    return newExp;
+  const addExpense = async (expData: Omit<Expense, 'id' | 'created_at'>) => {
+    const { data, error } = await supabase.from('expenses').insert(expData).select().single();
+    if (error || !data) {
+      console.error('addExpense failed', error);
+      return undefined;
+    }
+    setExpenses(prev => [data, ...prev]);
+    logAudit('Log Operating Expense', 'Expense', data.id, { category: data.category, amount: data.amount });
+    return data;
   };
 
-  const deleteExpense = (id: string) => {
+  const deleteExpense = async (id: string) => {
+    const { error } = await supabase.from('expenses').delete().eq('id', id);
+    if (error) {
+      console.error('deleteExpense failed', error);
+      return;
+    }
     setExpenses(prev => prev.filter(e => e.id !== id));
     logAudit('Delete Expense', 'Expense', id);
   };
 
+  const uploadAttachment = async (
+    patientId: string,
+    file: File,
+    category: AttachmentCategory = 'prescription',
+    medicalRecordId?: string
+  ) => {
+    const patient = patients.find(p => p.id === patientId);
+    const ext = file.name.includes('.') ? file.name.split('.').pop() : '';
+    const baseLabel = category === 'prescription' ? 'prescription' : category;
+    const displayName = patient
+      ? `${patient.full_name}-${baseLabel}${ext ? '.' + ext : ''}`
+      : file.name;
+    const safeName = displayName.replace(/[^a-zA-Z0-9.\-_؀-ۿ]/g, '_');
+    const filePath = `${patientId}/${Date.now()}-${safeName}`;
+
+    const { error: uploadError } = await supabase.storage.from(ATTACHMENTS_BUCKET).upload(filePath, file);
+    if (uploadError) {
+      console.error('uploadAttachment failed', uploadError);
+      alert('File upload failed: ' + uploadError.message);
+      return undefined;
+    }
+
+    const { data, error } = await supabase
+      .from('patient_attachments')
+      .insert({
+        patient_id: patientId,
+        medical_record_id: medicalRecordId,
+        category,
+        file_name: displayName,
+        file_path: filePath,
+        file_size: file.size,
+        mime_type: file.type,
+        uploaded_by: userRole
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error('uploadAttachment record failed', error);
+      return undefined;
+    }
+
+    setAttachments(prev => [data, ...prev]);
+    logAudit('Upload Attachment', 'PatientAttachment', data.id, { patient_id: patientId, file_name: displayName, category });
+    return data;
+  };
+
+  const deleteAttachment = async (id: string) => {
+    const att = attachments.find(a => a.id === id);
+    if (!att) return;
+    await supabase.storage.from(ATTACHMENTS_BUCKET).remove([att.file_path]);
+    const { error } = await supabase.from('patient_attachments').delete().eq('id', id);
+    if (error) {
+      console.error('deleteAttachment failed', error);
+      return;
+    }
+    setAttachments(prev => prev.filter(a => a.id !== id));
+    logAudit('Delete Attachment', 'PatientAttachment', id, { file_name: att.file_name });
+  };
+
+  const getAttachmentUrl = (filePath: string) => {
+    return supabase.storage.from(ATTACHMENTS_BUCKET).getPublicUrl(filePath).data.publicUrl;
+  };
+
+  const getAttachmentsByPatient = (patientId: string) => attachments.filter(a => a.patient_id === patientId);
+
   const getPatientById = (id: string) => patients.find(p => p.id === id);
   const getMedicalRecordsByPatient = (patientId: string) => medicalRecords.filter(r => r.patient_id === patientId);
   const getInvoicesByPatient = (patientId: string) => invoices.filter(i => i.patient_id === patientId);
-
-  const resetToSeedData = () => {
-    setPatients(INITIAL_PATIENTS);
-    setAppointments(INITIAL_APPOINTMENTS);
-    setMedicalRecords(INITIAL_MEDICAL_RECORDS);
-    setInvoices(INITIAL_INVOICES);
-    setExpenses(INITIAL_EXPENSES);
-    setAuditLogs(INITIAL_AUDIT_LOGS);
-    localStorage.clear();
-  };
 
   return (
     <ClinicContext.Provider
@@ -336,12 +413,14 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setPortalMode,
         userRole,
         setUserRole,
+        loading,
         patients,
         appointments,
         medicalRecords,
         invoices,
         expenses,
         auditLogs,
+        attachments,
         addPatient,
         updatePatient,
         deletePatient,
@@ -354,11 +433,15 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         updateInvoiceStatus,
         addExpense,
         deleteExpense,
+        uploadAttachment,
+        deleteAttachment,
+        getAttachmentUrl,
+        getAttachmentsByPatient,
         logAudit,
         getPatientById,
         getMedicalRecordsByPatient,
         getInvoicesByPatient,
-        resetToSeedData
+        refreshAll
       }}
     >
       {children}

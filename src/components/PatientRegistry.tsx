@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useClinic } from '../context/ClinicContext';
 import { doctorInfo } from '../utils/i18n';
-import { Users, Search, UserPlus, FileText, AlertTriangle, Phone, Trash2, Sparkles } from 'lucide-react';
+import { Users, Search, UserPlus, FileText, AlertTriangle, Phone, Trash2, Sparkles, Upload } from 'lucide-react';
 
 interface PatientRegistryProps {
   onViewPatientDossier: (patientId: string) => void;
@@ -10,7 +10,14 @@ interface PatientRegistryProps {
 }
 
 export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientDossier, onOpenSoapEditor, onOpenAiPrompt }) => {
-  const { patients, addPatient, deletePatient, t, lang } = useClinic();
+  const { patients, addPatient, deletePatient, t, lang, uploadAttachment, getAttachmentsByPatient } = useClinic();
+  const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+
+  const handleQuickUpload = async (patientId: string, file: File) => {
+    setUploadingFor(patientId);
+    await uploadAttachment(patientId, file, 'prescription');
+    setUploadingFor(null);
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [bloodFilter, setBloodFilter] = useState<string>('all');
@@ -43,7 +50,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
     return matchesSearch && matchesBlood && matchesBranch;
   });
 
-  const handleAddPatientSubmit = (e: React.FormEvent) => {
+  const handleAddPatientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !phone || !nationalId) {
       alert(lang === 'ar' ? 'يرجى إدخال اسم المريض ورقم الهاتف والرقم القومي.' : 'Full Name, Phone & National ID are required.');
@@ -53,7 +60,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
     const branchObj = doctorInfo.branches.find(b => b.id === preferredBranch);
     const branchLabel = branchObj ? (lang === 'ar' ? branchObj.city_ar : branchObj.city_en) : '';
 
-    const created = addPatient({
+    const created = await addPatient({
       full_name: fullName,
       phone,
       national_id: nationalId,
@@ -65,8 +72,13 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
       emergency_contact: emergencyContact || 'N/A'
     });
 
+    if (!created) {
+      alert(lang === 'ar' ? 'حدث خطأ أثناء إضافة المريضة.' : 'Failed to register patient.');
+      return;
+    }
+
     alert(lang === 'ar' ? `تم إضافة المريضة (${created.full_name}) بنجاح للسجل الطبي!` : `Patient (${created.full_name}) registered successfully!`);
-    
+
     // Reset Form
     setFullName('');
     setPhone('');
@@ -214,6 +226,29 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                     <Sparkles className="w-4 h-4" />
                   </button>
                 )}
+
+                <label
+                  className="p-1.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] text-[#122620] dark:text-white hover:text-[#00cb87] font-bold transition cursor-pointer relative"
+                  title="رفع صورة روشتة"
+                >
+                  <Upload className="w-4 h-4" />
+                  {getAttachmentsByPatient(patient.id).length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#00cb87] text-[8px] font-black text-slate-950 flex items-center justify-center">
+                      {getAttachmentsByPatient(patient.id).length}
+                    </span>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    className="hidden"
+                    disabled={uploadingFor === patient.id}
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) handleQuickUpload(patient.id, file);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
               </div>
 
               <button

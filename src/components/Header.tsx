@@ -4,11 +4,11 @@ import { clinicLogo } from '../assets/images';
 import { Sun, Moon, Shield, RefreshCw, Globe, UserCheck, Heart } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const { theme, toggleTheme, lang, toggleLang, t, portalMode, setPortalMode, userRole, setUserRole, resetToSeedData } = useClinic();
+  const { theme, toggleTheme, lang, toggleLang, t, portalMode, setPortalMode, userRole, setUserRole, refreshAll } = useClinic();
 
   const handleReset = () => {
-    if (confirm(lang === 'ar' ? 'هل تريد إعادة ضبط البيانات التجريبية إلى الوضع الافتراضي؟' : 'Reset demo data to default initial seed dataset?')) {
-      resetToSeedData();
+    if (confirm(lang === 'ar' ? 'هل تريد إعادة تحميل البيانات من قاعدة البيانات؟' : 'Reload data from the database?')) {
+      refreshAll();
     }
   };
 

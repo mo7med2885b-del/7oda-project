@@ -131,6 +131,21 @@ export interface Expense {
   created_at: string;
 }
 
+export type AttachmentCategory = 'prescription' | 'lab_report' | 'scan' | 'other';
+
+export interface PatientAttachment {
+  id: string;
+  patient_id: string;
+  medical_record_id?: string;
+  category: AttachmentCategory;
+  file_name: string;
+  file_path: string;
+  file_size?: number;
+  mime_type?: string;
+  uploaded_by?: string;
+  created_at: string;
+}
+
 export interface AuditLog {
   id: string;
   user_id: string;

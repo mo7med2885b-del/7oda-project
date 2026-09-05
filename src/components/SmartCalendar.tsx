@@ -117,7 +117,7 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
   };
   const isTimeSlotBooked = (dateStr: string, slotStr: string) => !!getAppointmentForSlot(dateStr, slotStr);
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
+  const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     let patientIdToBook = selectedPatientId;
     let patientNameToBook = '';
@@ -128,7 +128,7 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
         return;
       }
 
-      const createdPat = addPatient({
+      const createdPat = await addPatient({
         full_name: newFullName,
         phone: newPhone,
         national_id: newNationalId,
@@ -139,6 +139,11 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
         allergies: 'None',
         emergency_contact: 'N/A'
       });
+
+      if (!createdPat) {
+        alert(lang === 'ar' ? 'حدث خطأ أثناء إضافة المريضة.' : 'Failed to register patient.');
+        return;
+      }
 
       patientIdToBook = createdPat.id;
       patientNameToBook = createdPat.full_name;
