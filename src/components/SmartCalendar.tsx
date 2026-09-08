@@ -607,7 +607,8 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
 
         {/* MONTH VIEW */}
         {calendarView === 'month' && (
-          <div>
+          <div className="overflow-x-auto">
+            <div className="min-w-[640px]">
             <div className="grid grid-cols-7 border-b border-[#C6D2E2] dark:border-white/10">
               {(lang === 'ar' ? dayNamesShortAr : dayNamesShortEn).map(dn => (
                 <div key={dn} className="py-2.5 text-center text-[10px] font-bold text-slate-500 dark:text-slate-400">
@@ -679,6 +680,7 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                   </button>
                 );
               })}
+            </div>
             </div>
           </div>
         )}

@@ -145,7 +145,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose }) => {
             </div>
 
             {items.map(item => (
-              <div key={item.id} className="grid grid-cols-6 gap-2 items-center">
+              <div key={item.id} className="grid grid-cols-3 sm:grid-cols-6 gap-2 items-center">
                 <input
                   type="text"
                   placeholder="Service description"
