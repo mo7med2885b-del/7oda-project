@@ -22,6 +22,7 @@ import { Sparkles } from 'lucide-react';
 
 // Map URL pathname → (portalMode, tab)
 const PATH_MAP: Record<string, { mode: 'admin' | 'patient'; tab: NavTab }> = {
+  '/':           { mode: 'patient',  tab: 'dashboard' },
   '/welcome':    { mode: 'patient',  tab: 'dashboard' },
   '/patient':    { mode: 'patient',  tab: 'dashboard' }, // legacy alias -> /welcome
   '/dashboard':  { mode: 'admin',    tab: 'dashboard' },

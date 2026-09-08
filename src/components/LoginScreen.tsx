@@ -5,7 +5,7 @@ import { doctorInfo } from '../utils/i18n';
 import { Lock, Mail, ArrowRight, ArrowLeft, AlertCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 export const LoginScreen: React.FC = () => {
-  const { signIn, lang, toggleLang } = useClinic();
+  const { signIn, lang, toggleLang, setPortalMode } = useClinic();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -223,13 +223,25 @@ export const LoginScreen: React.FC = () => {
                 {isAr ? 'تواصل معنا' : 'Contact us'}
               </a>
             </span>
-            <button
-              type="button"
-              onClick={toggleLang}
-              className="text-[11px] font-semibold text-[#7C7C7C] dark:text-slate-400 hover:text-[#6AB8FF] transition-colors"
-            >
-              {isAr ? 'English' : 'العربية'}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setPortalMode('patient');
+                  window.history.pushState(null, '', '/welcome');
+                }}
+                className="text-[11px] font-semibold text-[#7C7C7C] dark:text-slate-400 hover:text-[#6AB8FF] transition-colors"
+              >
+                {isAr ? '← الموقع' : '← Website'}
+              </button>
+              <button
+                type="button"
+                onClick={toggleLang}
+                className="text-[11px] font-semibold text-[#7C7C7C] dark:text-slate-400 hover:text-[#6AB8FF] transition-colors"
+              >
+                {isAr ? 'English' : 'العربية'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -1,7 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Patient, Appointment, MedicalRecord, Invoice, Expense, AuditLog, AppointmentStatus, PatientAttachment, AttachmentCategory, Profile, AppRole } from '../types';
 import { translations, Language } from '../utils/i18n';
-import { supabase, ATTACHMENTS_BUCKET, AVATARS_BUCKET } from '../utils/supabaseClient';
+import {
+  supabase,
+  ATTACHMENTS_BUCKET,
+  AVATARS_BUCKET,
+  markSessionStart,
+  clearSessionStart,
+  isSessionExpired
+} from '../utils/supabaseClient';
 
 type UserRole = 'Admin' | 'Doctor' | 'Receptionist' | 'Accountant';
 type ThemeMode = 'light' | 'dark';
@@ -116,8 +123,10 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
 
   const [portalMode, setPortalModeState] = useState<PortalMode>(() => {
+    // The public patient portal is the default landing experience. Only fall
+    // back to a saved mode when the visitor explicitly chose one before.
     const saved = localStorage.getItem('clinic_portal_mode');
-    return (saved as PortalMode) || 'admin';
+    return (saved as PortalMode) || 'patient';
   });
 
   const [userRole, setUserRole] = useState<UserRole>('Admin');
@@ -171,6 +180,17 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     supabase.auth.getSession().then(async ({ data }) => {
       if (!mounted) return;
+
+      // Enforce the 48-hour cap: sign out a session that has outlived it.
+      if (data.session && isSessionExpired()) {
+        await supabase.auth.signOut();
+        clearSessionStart();
+        setSession(null);
+        setCurrentProfile(null);
+        setAuthLoading(false);
+        return;
+      }
+
       setSession(data.session);
       if (data.session?.user) await loadProfile(data.session.user.id);
       setAuthLoading(false);
@@ -185,8 +205,19 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     });
 
+    // Also expire a tab that was left open past the 48-hour window.
+    const expiryTimer = setInterval(async () => {
+      if (isSessionExpired()) {
+        await supabase.auth.signOut();
+        clearSessionStart();
+        setSession(null);
+        setCurrentProfile(null);
+      }
+    }, 60_000);
+
     return () => {
       mounted = false;
+      clearInterval(expiryTimer);
       sub.subscription.unsubscribe();
     };
   }, [loadProfile]);
@@ -199,11 +230,13 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
+    markSessionStart();
     return {};
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    clearSessionStart();
     setCurrentProfile(null);
     setSession(null);
   };
