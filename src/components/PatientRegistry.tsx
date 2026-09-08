@@ -98,10 +98,10 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
   return (
     <div className="space-y-6">
       {/* Top Header Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#2C3137] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 shadow-sm">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight dark:text-white text-[#122620] flex items-center gap-2">
-            <Users className="w-6 h-6 text-[#00473e] dark:text-[#00cb87]" />
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight dark:text-white text-[#2C3137] flex items-center gap-2">
+            <Users className="w-6 h-6 text-[#2C3137] dark:text-[#6AB8FF]" />
             {t('patient_registry_title')}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
@@ -111,7 +111,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow-md transition flex items-center justify-center gap-2"
+          className="px-4 py-2.5 rounded-xl bg-[#6AB8FF] hover:bg-[#4FA5F5] text-slate-950 font-black text-xs shadow-md transition flex items-center justify-center gap-2"
         >
           <UserPlus className="w-4 h-4 text-slate-950" />
           <span>{t('register_patient')}</span>
@@ -127,14 +127,14 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder={t('search_placeholder')}
-            className="w-full pl-9 rtl:pr-9 rtl:pl-4 pr-4 py-2.5 text-xs rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white focus:ring-2 focus:ring-[#00cb87]"
+            className="w-full pl-9 rtl:pr-9 rtl:pl-4 pr-4 py-2.5 text-xs rounded-xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white focus:ring-2 focus:ring-[#6AB8FF]"
           />
         </div>
 
         <select
           value={bloodFilter}
           onChange={e => setBloodFilter(e.target.value)}
-          className="px-3 py-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-xs font-bold text-[#122620] dark:text-[#00cb87]"
+          className="px-3 py-2.5 rounded-xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-xs font-bold text-[#2C3137] dark:text-[#6AB8FF]"
         >
           <option value="all">{t('all_blood_types')}</option>
           <option value="A+">A+</option>
@@ -150,7 +150,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
         <select
           value={branchFilter}
           onChange={e => setBranchFilter(e.target.value)}
-          className="px-3 py-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-xs font-bold text-[#122620] dark:text-[#00cb87]"
+          className="px-3 py-2.5 rounded-xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-xs font-bold text-[#2C3137] dark:text-[#6AB8FF]"
         >
           <option value="all">{lang === 'ar' ? 'جميع فروع العيادة' : 'All Clinic Branches'}</option>
           {doctorInfo.branches.map(b => (
@@ -166,11 +166,11 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
         {filteredPatients.map(patient => (
           <div
             key={patient.id}
-            className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm hover:shadow-md transition space-y-3"
+            className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#2C3137] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 shadow-sm hover:shadow-md transition space-y-3"
           >
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-extrabold text-sm text-[#122620] dark:text-white">{patient.full_name}</h3>
+                <h3 className="font-extrabold text-sm text-[#2C3137] dark:text-white">{patient.full_name}</h3>
                 <div className="text-[11px] text-slate-500 font-mono" dir="ltr">ID: {patient.national_id}</div>
               </div>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-300 border border-rose-500/30">
@@ -180,7 +180,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
 
             <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-[#122620] dark:text-white">{patient.age} سنة ({patient.gender === 'Female' ? 'أنثى' : 'ذكر'})</span>
+                <span className="font-bold text-[#2C3137] dark:text-white">{patient.age} سنة ({patient.gender === 'Female' ? 'أنثى' : 'ذكر'})</span>
                 <span className="text-slate-300">|</span>
                 <Phone className="w-3.5 h-3.5 text-slate-400 inline" />
                 <span className="font-mono" dir="ltr">{patient.phone}</span>
@@ -200,27 +200,27 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-3 border-t border-[#e3ded5] dark:border-white/10">
+            <div className="flex items-center justify-between pt-3 border-t border-[#C6D2E2] dark:border-white/10">
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => onViewPatientDossier(patient.id)}
-                  className="px-2.5 py-1.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] text-[#122620] dark:text-white font-bold text-xs hover:bg-slate-200 transition"
+                  className="px-2.5 py-1.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] text-[#2C3137] dark:text-white font-bold text-xs hover:bg-slate-200 transition"
                 >
                   {t('dossier')}
                 </button>
 
                 <button
                   onClick={() => onOpenSoapEditor(patient.id)}
-                  className="px-2.5 py-1.5 rounded-xl bg-[#00473e] text-white font-bold text-xs flex items-center gap-1 hover:bg-[#003831] transition"
+                  className="px-2.5 py-1.5 rounded-xl bg-[#2C3137] text-white font-bold text-xs flex items-center gap-1 hover:bg-[#1F2429] transition"
                 >
-                  <FileText className="w-3.5 h-3.5 text-[#00cb87]" />
+                  <FileText className="w-3.5 h-3.5 text-[#6AB8FF]" />
                   <span>{t('soap')}</span>
                 </button>
 
                 {onOpenAiPrompt && (
                   <button
                     onClick={() => handlePatientAiAnalysis(patient)}
-                    className="p-1.5 rounded-xl bg-[#00cb87]/15 text-[#00cb87] hover:bg-[#00cb87] hover:text-slate-950 font-bold transition"
+                    className="p-1.5 rounded-xl bg-[#6AB8FF]/15 text-[#6AB8FF] hover:bg-[#6AB8FF] hover:text-slate-950 font-bold transition"
                     title="تحليل مخصّص للمريضة بالذكاء الاصطناعي"
                   >
                     <Sparkles className="w-4 h-4" />
@@ -228,12 +228,12 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                 )}
 
                 <label
-                  className="p-1.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] text-[#122620] dark:text-white hover:text-[#00cb87] font-bold transition cursor-pointer relative"
+                  className="p-1.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] text-[#2C3137] dark:text-white hover:text-[#6AB8FF] font-bold transition cursor-pointer relative"
                   title="رفع صورة روشتة"
                 >
                   <Upload className="w-4 h-4" />
                   {getAttachmentsByPatient(patient.id).length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#00cb87] text-[8px] font-black text-slate-950 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#6AB8FF] text-[8px] font-black text-slate-950 flex items-center justify-center">
                       {getAttachmentsByPatient(patient.id).length}
                     </span>
                   )}
@@ -268,11 +268,11 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
 
       {/* Add New Patient Modal Dialog */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-[#001c15]/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#00261c] border border-[#e3ded5] dark:border-[#00cb87]/40 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#e3ded5] dark:border-white/10 pb-3">
-              <h3 className="text-base sm:text-lg font-black text-[#122620] dark:text-white flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-[#00cb87]" />
+        <div className="fixed inset-0 z-50 bg-[#22262B]/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#2C3137] border border-[#C6D2E2] dark:border-[#6AB8FF]/40 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#C6D2E2] dark:border-white/10 pb-3">
+              <h3 className="text-base sm:text-lg font-black text-[#2C3137] dark:text-white flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-[#6AB8FF]" />
                 {t('register_patient')}
               </h3>
               <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-white p-1">
@@ -289,7 +289,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="مثال: سارة أحمد المنصور"
-                  className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white focus:ring-2 focus:ring-[#00cb87]"
+                  className="w-full p-2.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white focus:ring-2 focus:ring-[#6AB8FF]"
                 />
               </div>
 
@@ -302,7 +302,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
                     placeholder="010xxxxxxxx"
-                    className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-mono focus:ring-2 focus:ring-[#00cb87]"
+                    className="w-full p-2.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white font-mono focus:ring-2 focus:ring-[#6AB8FF]"
                     dir="ltr"
                   />
                 </div>
@@ -314,7 +314,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                     value={nationalId}
                     onChange={e => setNationalId(e.target.value)}
                     placeholder="293xxxxxxxxxxx"
-                    className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-mono focus:ring-2 focus:ring-[#00cb87]"
+                    className="w-full p-2.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white font-mono focus:ring-2 focus:ring-[#6AB8FF]"
                     dir="ltr"
                   />
                 </div>
@@ -327,7 +327,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                     type="number"
                     value={age}
                     onChange={e => setAge(Number(e.target.value))}
-                    className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-bold"
+                    className="w-full p-2.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white font-bold"
                   />
                 </div>
                 <div>
@@ -335,7 +335,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                   <select
                     value={bloodType}
                     onChange={e => setBloodType(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-bold"
+                    className="w-full p-2.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white font-bold"
                   >
                     <option value="A+">A+</option>
                     <option value="A-">A-</option>
@@ -352,7 +352,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                   <select
                     value={preferredBranch}
                     onChange={e => setPreferredBranch(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-bold"
+                    className="w-full p-2.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white font-bold"
                   >
                     {doctorInfo.branches.map(b => (
                       <option key={b.id} value={b.id}>
@@ -370,7 +370,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                   value={medicalAlerts}
                   onChange={e => setMedicalAlerts(e.target.value)}
                   placeholder="مثال: تحضير للحقن المجهري، حمل في الأسبوع 12، تكيس مبيضين"
-                  className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white"
+                  className="w-full p-2.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white"
                 />
               </div>
 
@@ -381,7 +381,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                   value={allergies}
                   onChange={e => setAllergies(e.target.value)}
                   placeholder="مثال: البنسلين، الأسبرين..."
-                  className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white"
+                  className="w-full p-2.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white"
                 />
               </div>
 
@@ -392,15 +392,15 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
                   value={emergencyContact}
                   onChange={e => setEmergencyContact(e.target.value)}
                   placeholder="الاسم ورقم تليفون الطوارئ"
-                  className="w-full p-2.5 rounded-xl bg-[#ece7de] dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white"
+                  className="w-full p-2.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#e3ded5] dark:border-white/10">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#C6D2E2] dark:border-white/10">
                 <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 text-slate-400 font-bold">
                   إلغاء
                 </button>
-                <button type="submit" className="px-5 py-2 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black shadow">
+                <button type="submit" className="px-5 py-2 rounded-xl bg-[#6AB8FF] hover:bg-[#4FA5F5] text-slate-950 font-black shadow">
                   حفظ وتسجيل المريضة
                 </button>
               </div>

@@ -23,6 +23,11 @@ export const doctorInfo = {
   ],
   contact_phone: "01033188360",
   whatsapp_phone: "201033188360",
+  social: {
+    facebook: "https://www.facebook.com/DrMohammedHosni/",
+    instagram: "https://www.instagram.com/dr.mohamed.hosny",
+    youtube: "https://www.youtube.com/@dr.mohammedhosni5659"
+  },
   branches: [
     {
       id: "cairo",

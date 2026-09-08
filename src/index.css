@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&family=Urbanist:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,8 +6,8 @@
 
 @layer base {
   body {
-    font-family: 'Tajawal', 'Cairo', 'Plus Jakarta Sans', sans-serif;
-    @apply antialiased bg-[#f5f2eb] text-[#122620] dark:bg-[#00261c] dark:text-[#f5f2eb] transition-colors duration-200;
+    font-family: 'Urbanist', 'Tajawal', 'Cairo', 'Plus Jakarta Sans', sans-serif;
+    @apply antialiased bg-[#DAE3EE] text-[#2C3137] dark:bg-[#2C3137] dark:text-[#FCFDFF] transition-colors duration-200;
   }
 }
 
@@ -18,14 +18,85 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 38, 28, 0.5);
+  background: rgba(44, 49, 55, 0.08);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 203, 135, 0.35);
+  background: rgba(106, 184, 255, 0.45);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 203, 135, 0.7);
+  background: rgba(106, 184, 255, 0.8);
+}
+
+
+/* ============================================================
+   PATIENT PORTAL — "Clinical Blue" design system
+   Derived from the VitalCare inspiration reference.
+   ============================================================ */
+
+@layer utilities {
+  .clinical-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  .clinical-display {
+    font-family: 'Space Grotesk', 'Tajawal', sans-serif;
+    letter-spacing: -0.02em;
+    line-height: 0.92;
+  }
+}
+
+/* Soft rotating aurora used on the deep-blue sections */
+.clinical-aurora::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background:
+    radial-gradient(closest-side, rgba(255,255,255,0.10), transparent 72%) 20% 30%/55% 55% no-repeat,
+    radial-gradient(closest-side, rgba(193,229,91,0.07), transparent 72%) 80% 65%/50% 50% no-repeat,
+    radial-gradient(closest-side, rgba(120,180,230,0.10), transparent 72%) 55% 85%/60% 60% no-repeat;
+  animation: clinical-drift 26s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes clinical-drift {
+  0%   { transform: rotate(0deg)   scale(1); }
+  50%  { transform: rotate(180deg) scale(1.12); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* Scroll reveal */
+.clinical-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.clinical-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Marquee strip */
+@keyframes clinical-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.clinical-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: clinical-marquee 32s linear infinite;
+}
+[dir='rtl'] .clinical-marquee-track {
+  animation-direction: reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clinical-aurora::before,
+  .clinical-marquee-track { animation: none; }
+  .clinical-reveal { opacity: 1; transform: none; transition: none; }
 }

@@ -131,6 +131,20 @@ export interface Expense {
   created_at: string;
 }
 
+export type AppRole = 'admin' | 'secretary';
+
+export interface Profile {
+  id: string;
+  full_name: string;
+  email?: string;
+  role: AppRole;
+  avatar_path?: string | null;
+  phone?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
 export type AttachmentCategory = 'prescription' | 'lab_report' | 'scan' | 'other';
 
 export interface PatientAttachment {

@@ -121,12 +121,12 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
-      <div className="w-full max-w-4xl rounded-2xl dark:bg-[#00261c] bg-[#f5f2eb] border dark:border-[#00cb87]/40 border-[#00473e]/30 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="w-full max-w-4xl rounded-2xl dark:bg-[#2C3137] bg-[#DAE3EE] border dark:border-[#6AB8FF]/40 border-[#2C3137]/30 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="p-4 sm:p-6 bg-[#001c15] text-white flex items-center justify-between border-b border-[#00cb87]/30">
+        <div className="p-4 sm:p-6 bg-[#22262B] text-white flex items-center justify-between border-b border-[#6AB8FF]/30">
           <div>
-            <div className="text-[10px] sm:text-xs text-[#00cb87] font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-[#00cb87]" />
+            <div className="text-[10px] sm:text-xs text-[#6AB8FF] font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <FileText className="w-4 h-4 text-[#6AB8FF]" />
               <span>Smart Clinical SOAP Note Editor & AI Medical Scribe</span>
             </div>
             <h2 className="text-base sm:text-xl font-black mt-1 text-white">Encounters for {patient.full_name}</h2>
@@ -139,10 +139,10 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
         {/* Content Body */}
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 text-xs">
           {/* AI Feature 1 Widget: AI Scribe & Summarizer */}
-          <div className="p-4 rounded-2xl bg-[#001c15] border border-[#00cb87]/40 shadow-xl space-y-3">
+          <div className="p-4 rounded-2xl bg-[#22262B] border border-[#6AB8FF]/40 shadow-xl space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-[#00cb87]">
-                <Sparkles className="w-4 h-4 animate-pulse shrink-0 text-[#00cb87]" />
+              <div className="flex items-center gap-2 text-[#6AB8FF]">
+                <Sparkles className="w-4 h-4 animate-pulse shrink-0 text-[#6AB8FF]" />
                 <span className="font-extrabold text-xs uppercase tracking-wider">
                   AI Doctor Scribe & Auto-SOAP Transformer
                 </span>
@@ -152,7 +152,7 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
                   <button
                     type="button"
                     onClick={handleAskAiAssistant}
-                    className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#00cb87] font-bold text-xs flex items-center gap-1 transition"
+                    className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#6AB8FF] font-bold text-xs flex items-center gap-1 transition"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>مساعدة الشات الذكي</span>
@@ -162,7 +162,7 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
                   type="button"
                   onClick={handleRunAiScribe}
                   disabled={isAiProcessing}
-                  className="px-4 py-1.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md"
+                  className="px-4 py-1.5 rounded-xl bg-[#6AB8FF] hover:bg-[#4FA5F5] text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-md"
                 >
                   {isAiProcessing ? 'Transforming...' : 'Generate Structured SOAP'}
                   <Sparkles className="w-3.5 h-3.5" />
@@ -177,56 +177,56 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
               value={roughNotes}
               onChange={e => setRoughNotes(e.target.value)}
               placeholder="e.g., Patient complaining of 4 days sore throat, high grade fever 38.5, enlarged tonsils with purulent exudate, no cough. Allergy to penicillin. Suspect acute streptococcal pharyngitis."
-              className="w-full p-2.5 rounded-xl bg-[#00261c] text-white border border-[#00cb87]/30 focus:ring-2 focus:ring-[#00cb87]"
+              className="w-full p-2.5 rounded-xl bg-[#2C3137] text-white border border-[#6AB8FF]/30 focus:ring-2 focus:ring-[#6AB8FF]"
             />
           </div>
 
           {/* Vitals Input Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-3.5 rounded-2xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-3.5 rounded-2xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 shadow-sm">
             <div>
               <label className="text-slate-500 dark:text-slate-400 font-bold block text-[10px]">BP (mmHg)</label>
-              <input type="text" value={bp} onChange={e => setBp(e.target.value)} className="w-full p-1 rounded bg-transparent border-b border-slate-300 dark:border-slate-700 font-mono font-bold text-[#122620] dark:text-white" dir="ltr" />
+              <input type="text" value={bp} onChange={e => setBp(e.target.value)} className="w-full p-1 rounded bg-transparent border-b border-slate-300 dark:border-slate-700 font-mono font-bold text-[#2C3137] dark:text-white" dir="ltr" />
             </div>
             <div>
               <label className="text-slate-500 dark:text-slate-400 font-bold block text-[10px]">Pulse (bpm)</label>
-              <input type="text" value={hr} onChange={e => setHr(e.target.value)} className="w-full p-1 rounded bg-transparent border-b border-slate-300 dark:border-slate-700 font-mono font-bold text-[#122620] dark:text-white" dir="ltr" />
+              <input type="text" value={hr} onChange={e => setHr(e.target.value)} className="w-full p-1 rounded bg-transparent border-b border-slate-300 dark:border-slate-700 font-mono font-bold text-[#2C3137] dark:text-white" dir="ltr" />
             </div>
             <div>
               <label className="text-slate-500 dark:text-slate-400 font-bold block text-[10px]">Temp (°C)</label>
-              <input type="text" value={temp} onChange={e => setTemp(e.target.value)} className="w-full p-1 rounded bg-transparent border-b border-slate-300 dark:border-slate-700 font-mono font-bold text-[#122620] dark:text-white" dir="ltr" />
+              <input type="text" value={temp} onChange={e => setTemp(e.target.value)} className="w-full p-1 rounded bg-transparent border-b border-slate-300 dark:border-slate-700 font-mono font-bold text-[#2C3137] dark:text-white" dir="ltr" />
             </div>
             <div>
               <label className="text-slate-500 dark:text-slate-400 font-bold block text-[10px]">Weight (kg)</label>
-              <input type="text" value={weight} onChange={e => setWeight(e.target.value)} className="w-full p-1 rounded bg-transparent border-b border-slate-300 dark:border-slate-700 font-mono font-bold text-[#122620] dark:text-white" dir="ltr" />
+              <input type="text" value={weight} onChange={e => setWeight(e.target.value)} className="w-full p-1 rounded bg-transparent border-b border-slate-300 dark:border-slate-700 font-mono font-bold text-[#2C3137] dark:text-white" dir="ltr" />
             </div>
             <div>
               <label className="text-slate-500 dark:text-slate-400 font-bold block text-[10px]">SpO2 (%)</label>
-              <input type="text" value={spo2} onChange={e => setSpo2(e.target.value)} className="w-full p-1 rounded bg-transparent border-b border-slate-300 dark:border-slate-700 font-mono font-bold text-[#122620] dark:text-white" dir="ltr" />
+              <input type="text" value={spo2} onChange={e => setSpo2(e.target.value)} className="w-full p-1 rounded bg-transparent border-b border-slate-300 dark:border-slate-700 font-mono font-bold text-[#2C3137] dark:text-white" dir="ltr" />
             </div>
           </div>
 
           {/* Chief Complaint & Diagnosis */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold text-[#122620] dark:text-slate-200 mb-1">Chief Complaint *</label>
+              <label className="block font-bold text-[#2C3137] dark:text-slate-200 mb-1">Chief Complaint *</label>
               <input
                 type="text"
                 required
                 value={chiefComplaint}
                 onChange={e => setChiefComplaint(e.target.value)}
                 placeholder="Primary symptom or reason for visit"
-                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#122620] dark:text-slate-200 mb-1">Clinical Diagnosis *</label>
+              <label className="block font-bold text-[#2C3137] dark:text-slate-200 mb-1">Clinical Diagnosis *</label>
               <input
                 type="text"
                 required
                 value={diagnosis}
                 onChange={e => setDiagnosis(e.target.value)}
                 placeholder="Primary ICD-10 or clinical assessment"
-                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white font-bold"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white font-bold"
               />
             </div>
           </div>
@@ -234,51 +234,51 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
           {/* SOAP Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold text-[#122620] dark:text-slate-300 mb-1">S - Subjective (Patient History & Symptoms)</label>
+              <label className="block font-bold text-[#2C3137] dark:text-slate-300 mb-1">S - Subjective (Patient History & Symptoms)</label>
               <textarea
                 rows={3}
                 value={soapSubjective}
                 onChange={e => setSoapSubjective(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#122620] dark:text-slate-300 mb-1">O - Objective (Physical Exam & Labs)</label>
+              <label className="block font-bold text-[#2C3137] dark:text-slate-300 mb-1">O - Objective (Physical Exam & Labs)</label>
               <textarea
                 rows={3}
                 value={soapObjective}
                 onChange={e => setSoapObjective(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#122620] dark:text-slate-300 mb-1">A - Assessment (Evaluation & Severity)</label>
+              <label className="block font-bold text-[#2C3137] dark:text-slate-300 mb-1">A - Assessment (Evaluation & Severity)</label>
               <textarea
                 rows={3}
                 value={soapAssessment}
                 onChange={e => setSoapAssessment(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#122620] dark:text-slate-300 mb-1">P - Plan & Management Instructions</label>
+              <label className="block font-bold text-[#2C3137] dark:text-slate-300 mb-1">P - Plan & Management Instructions</label>
               <textarea
                 rows={3}
                 value={soapPlan}
                 onChange={e => setSoapPlan(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 text-[#122620] dark:text-white"
+                className="w-full p-2.5 rounded-xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 text-[#2C3137] dark:text-white"
               />
             </div>
           </div>
 
           {/* Rx Prescription Manager */}
-          <div className="space-y-3 pt-3 border-t dark:border-white/10 border-[#e3ded5]">
+          <div className="space-y-3 pt-3 border-t dark:border-white/10 border-[#C6D2E2]">
             <div className="flex items-center justify-between">
-              <h4 className="font-extrabold text-[#122620] dark:text-white">Rx Electronic Prescription</h4>
+              <h4 className="font-extrabold text-[#2C3137] dark:text-white">Rx Electronic Prescription</h4>
               <button
                 type="button"
                 onClick={handleAddRxRow}
-                className="px-3 py-1.5 rounded-xl bg-[#00cb87]/15 text-[#00cb87] font-bold text-xs flex items-center gap-1 transition"
+                className="px-3 py-1.5 rounded-xl bg-[#6AB8FF]/15 text-[#6AB8FF] font-bold text-xs flex items-center gap-1 transition"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add Medication
@@ -286,7 +286,7 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
             </div>
 
             {prescriptions.map((rx) => (
-              <div key={rx.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center p-2.5 rounded-2xl bg-white dark:bg-[#001c15] border border-[#e3ded5] dark:border-[#00cb87]/30 shadow-sm">
+              <div key={rx.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center p-2.5 rounded-2xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 shadow-sm">
                 <input
                   type="text"
                   placeholder="Medication Name"
@@ -295,7 +295,7 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
                     const val = e.target.value;
                     setPrescriptions(prev => prev.map(p => (p.id === rx.id ? { ...p, medication: val } : p)));
                   }}
-                  className="sm:col-span-2 p-2 rounded-xl bg-transparent border border-slate-300 dark:border-slate-700 font-bold text-[#122620] dark:text-white"
+                  className="sm:col-span-2 p-2 rounded-xl bg-transparent border border-slate-300 dark:border-slate-700 font-bold text-[#2C3137] dark:text-white"
                 />
                 <input
                   type="text"
@@ -305,7 +305,7 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
                     const val = e.target.value;
                     setPrescriptions(prev => prev.map(p => (p.id === rx.id ? { ...p, dosage: val } : p)));
                   }}
-                  className="p-2 rounded-xl bg-transparent border border-slate-300 dark:border-slate-700 text-[#122620] dark:text-white"
+                  className="p-2 rounded-xl bg-transparent border border-slate-300 dark:border-slate-700 text-[#2C3137] dark:text-white"
                 />
                 <input
                   type="text"
@@ -315,7 +315,7 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
                     const val = e.target.value;
                     setPrescriptions(prev => prev.map(p => (p.id === rx.id ? { ...p, frequency: val } : p)));
                   }}
-                  className="p-2 rounded-xl bg-transparent border border-slate-300 dark:border-slate-700 text-[#122620] dark:text-white"
+                  className="p-2 rounded-xl bg-transparent border border-slate-300 dark:border-slate-700 text-[#2C3137] dark:text-white"
                 />
                 <input
                   type="text"
@@ -325,7 +325,7 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
                     const val = e.target.value;
                     setPrescriptions(prev => prev.map(p => (p.id === rx.id ? { ...p, duration: val } : p)));
                   }}
-                  className="p-2 rounded-xl bg-transparent border border-slate-300 dark:border-slate-700 text-[#122620] dark:text-white"
+                  className="p-2 rounded-xl bg-transparent border border-slate-300 dark:border-slate-700 text-[#2C3137] dark:text-white"
                 />
                 <button
                   type="button"
@@ -338,13 +338,13 @@ export const SoapNoteEditorModal: React.FC<SoapNoteEditorModalProps> = ({ patien
             ))}
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t dark:border-white/10 border-[#e3ded5]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t dark:border-white/10 border-[#C6D2E2]">
             <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl text-slate-500 font-bold hover:text-slate-800 dark:hover:text-white transition">
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow-lg transition"
+              className="px-6 py-2.5 rounded-xl bg-[#6AB8FF] hover:bg-[#4FA5F5] text-slate-950 font-black text-xs shadow-lg transition"
             >
               Save SOAP Record & Rx
             </button>

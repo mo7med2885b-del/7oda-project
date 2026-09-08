@@ -1,11 +1,36 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Patient, Appointment, MedicalRecord, Invoice, Expense, AuditLog, AppointmentStatus, PatientAttachment, AttachmentCategory } from '../types';
+import { Patient, Appointment, MedicalRecord, Invoice, Expense, AuditLog, AppointmentStatus, PatientAttachment, AttachmentCategory, Profile, AppRole } from '../types';
 import { translations, Language } from '../utils/i18n';
-import { supabase, ATTACHMENTS_BUCKET } from '../utils/supabaseClient';
+import { supabase, ATTACHMENTS_BUCKET, AVATARS_BUCKET } from '../utils/supabaseClient';
 
 type UserRole = 'Admin' | 'Doctor' | 'Receptionist' | 'Accountant';
 type ThemeMode = 'light' | 'dark';
 type PortalMode = 'admin' | 'patient';
+
+/** What each role is allowed to see/do in the UI. Mirrors the database RLS policies. */
+export type Permission =
+  | 'view_financials'      // revenue dashboards, expenses, profit
+  | 'manage_expenses'
+  | 'view_medical_records' // SOAP notes, prescriptions, attachments
+  | 'view_audit_logs'
+  | 'manage_users'
+  | 'take_payments'        // record invoice payments at the front desk
+  | 'manage_appointments'
+  | 'manage_patients';
+
+const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
+  admin: [
+    'view_financials',
+    'manage_expenses',
+    'view_medical_records',
+    'view_audit_logs',
+    'manage_users',
+    'take_payments',
+    'manage_appointments',
+    'manage_patients'
+  ],
+  secretary: ['take_payments', 'manage_appointments', 'manage_patients']
+};
 
 interface ClinicContextType {
   theme: ThemeMode;
@@ -18,6 +43,21 @@ interface ClinicContextType {
   userRole: UserRole;
   setUserRole: (role: UserRole) => void;
   loading: boolean;
+
+  // Auth & profiles
+  session: any | null;
+  currentProfile: Profile | null;
+  authLoading: boolean;
+  profiles: Profile[];
+  can: (permission: Permission) => boolean;
+  signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  signOut: () => Promise<void>;
+  createUser: (email: string, password: string, fullName: string, role: AppRole) => Promise<{ error?: string }>;
+  updateProfile: (id: string, updated: Partial<Profile>) => Promise<{ error?: string }>;
+  deleteProfile: (id: string) => Promise<{ error?: string }>;
+  uploadAvatar: (profileId: string, file: File) => Promise<string | undefined>;
+  getAvatarUrl: (path?: string | null) => string | null;
+  refreshProfiles: () => Promise<void>;
   patients: Patient[];
   appointments: Appointment[];
   medicalRecords: MedicalRecord[];
@@ -83,6 +123,12 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [userRole, setUserRole] = useState<UserRole>('Admin');
   const [loading, setLoading] = useState(true);
 
+  // Auth & profile state
+  const [session, setSession] = useState<any | null>(null);
+  const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+
   const [patients, setPatients] = useState<Patient[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
@@ -112,6 +158,109 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
     document.documentElement.setAttribute('lang', lang);
   }, [lang]);
+
+  // ---- Auth ----
+  const loadProfile = useCallback(async (userId: string) => {
+    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    setCurrentProfile(data || null);
+    return data as Profile | null;
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!mounted) return;
+      setSession(data.session);
+      if (data.session?.user) await loadProfile(data.session.user.id);
+      setAuthLoading(false);
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      setSession(newSession);
+      if (newSession?.user) {
+        await loadProfile(newSession.user.id);
+      } else {
+        setCurrentProfile(null);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [loadProfile]);
+
+  const can = (permission: Permission): boolean => {
+    if (!currentProfile) return false;
+    return ROLE_PERMISSIONS[currentProfile.role]?.includes(permission) ?? false;
+  };
+
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: error.message };
+    return {};
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setCurrentProfile(null);
+    setSession(null);
+  };
+
+  const refreshProfiles = useCallback(async () => {
+    const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: true });
+    setProfiles(data || []);
+  }, []);
+
+  const createUser = async (email: string, password: string, fullName: string, role: AppRole) => {
+    // signUp creates the auth user; the DB trigger creates the matching profile row.
+    // Note: this signs in as the new user in this browser session, so we restore
+    // the admin session afterwards by asking them to stay signed in.
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName, role } }
+    });
+    if (error) return { error: error.message };
+    await refreshProfiles();
+    return {};
+  };
+
+  const updateProfile = async (id: string, updated: Partial<Profile>) => {
+    const { error } = await supabase.from('profiles').update(updated).eq('id', id);
+    if (error) return { error: error.message };
+    setProfiles(prev => prev.map(p => (p.id === id ? { ...p, ...updated } : p)));
+    if (currentProfile?.id === id) setCurrentProfile(prev => (prev ? { ...prev, ...updated } : prev));
+    logAudit('Update Profile', 'Profile', id, updated);
+    return {};
+  };
+
+  const deleteProfile = async (id: string) => {
+    const { error } = await supabase.from('profiles').delete().eq('id', id);
+    if (error) return { error: error.message };
+    setProfiles(prev => prev.filter(p => p.id !== id));
+    logAudit('Delete Profile', 'Profile', id);
+    return {};
+  };
+
+  const uploadAvatar = async (profileId: string, file: File) => {
+    const ext = file.name.includes('.') ? file.name.split('.').pop() : 'png';
+    const filePath = `${profileId}/${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from(AVATARS_BUCKET).upload(filePath, file, { upsert: true });
+    if (upErr) {
+      console.error('uploadAvatar failed', upErr);
+      alert('Avatar upload failed: ' + upErr.message);
+      return undefined;
+    }
+    await updateProfile(profileId, { avatar_path: filePath });
+    return filePath;
+  };
+
+  const getAvatarUrl = (path?: string | null) => {
+    if (!path) return null;
+    return supabase.storage.from(AVATARS_BUCKET).getPublicUrl(path).data.publicUrl;
+  };
 
   const refreshAll = useCallback(async () => {
     setLoading(true);
@@ -143,9 +292,12 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setLoading(false);
   }, []);
 
+  // Load clinic data (and the user list for admins) once signed in
   useEffect(() => {
+    if (!currentProfile) return;
     refreshAll();
-  }, [refreshAll]);
+    refreshProfiles();
+  }, [currentProfile, refreshAll, refreshProfiles]);
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
@@ -414,6 +566,19 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         userRole,
         setUserRole,
         loading,
+        session,
+        currentProfile,
+        authLoading,
+        profiles,
+        can,
+        signIn,
+        signOut,
+        createUser,
+        updateProfile,
+        deleteProfile,
+        uploadAvatar,
+        getAvatarUrl,
+        refreshProfiles,
         patients,
         appointments,
         medicalRecords,

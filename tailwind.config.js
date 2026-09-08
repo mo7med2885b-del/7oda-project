@@ -8,6 +8,16 @@ export default {
   theme: {
     extend: {
       colors: {
+        clinical: {
+          deep: '#1d3f5e',
+          DEFAULT: '#275077',
+          mid: '#4c7091',
+          soft: '#44648e',
+          cream: '#f9f7f1',
+          paper: '#f2f4f7',
+          lime: '#c1e55b',
+          olive: '#39442b'
+        },
         dark: {
           bg: '#00261c',
           surface: '#023326',
@@ -38,6 +48,7 @@ export default {
       },
       fontFamily: {
         sans: ['Tajawal', 'Cairo', '"Plus Jakarta Sans"', 'sans-serif'],
+        display: ['"Space Grotesk"', 'Tajawal', '"Plus Jakarta Sans"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace']
       }
     },

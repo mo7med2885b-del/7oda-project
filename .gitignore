@@ -13,6 +13,12 @@ dist-ssr
 *.local
 .env
 
+# Local tooling config (contains machine-specific MCP server setup)
+.mcp.json
+
+# Design reference material (large scraped assets, not part of the app)
+dr-hosney inspiration/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

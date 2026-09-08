@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ClinicProvider, useClinic } from './context/ClinicContext';
-import { Header } from './components/Header';
-import { Sidebar, NavTab } from './components/Sidebar';
+import { NavTab } from './components/Sidebar';
+import { TopNav } from './components/TopNav';
 import { ExecutiveDashboard } from './components/ExecutiveDashboard';
 import { DoctorProfileLanding } from './components/DoctorProfileLanding';
 import { PatientRegistry } from './components/PatientRegistry';
@@ -16,11 +16,14 @@ import { AiFinancialAdvisorModal } from './components/AiFinancialAdvisorModal';
 import { AiTriageModal } from './components/AiTriageModal';
 import { PortalSelectorModal } from './components/PortalSelectorModal';
 import { FeatherlessAiChatDrawer } from './components/FeatherlessAiChatDrawer';
+import { LoginScreen } from './components/LoginScreen';
+import { UserManagementModal } from './components/UserManagementModal';
 import { Sparkles } from 'lucide-react';
 
 // Map URL pathname → (portalMode, tab)
 const PATH_MAP: Record<string, { mode: 'admin' | 'patient'; tab: NavTab }> = {
-  '/patient':    { mode: 'patient',  tab: 'dashboard' },
+  '/welcome':    { mode: 'patient',  tab: 'dashboard' },
+  '/patient':    { mode: 'patient',  tab: 'dashboard' }, // legacy alias -> /welcome
   '/dashboard':  { mode: 'admin',    tab: 'dashboard' },
   '/admin':      { mode: 'admin',    tab: 'dashboard' },
   '/calendar':   { mode: 'admin',    tab: 'calendar' },
@@ -34,8 +37,9 @@ const navigate = (path: string) => {
 };
 
 const ClinicAppContent: React.FC = () => {
-  const { portalMode, setPortalMode } = useClinic();
+  const { portalMode, setPortalMode, session, currentProfile, authLoading, can } = useClinic();
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
+  const [showUserManagement, setShowUserManagement] = useState(false);
 
   // Modals state
   const [showPortalSelectorModal, setShowPortalSelectorModal] = useState<boolean>(() => {
@@ -72,7 +76,7 @@ const ClinicAppContent: React.FC = () => {
 
   // Update URL whenever portalMode or activeTab changes
   useEffect(() => {
-    const targetPath = portalMode === 'patient' ? '/patient' : `/${activeTab}`;
+    const targetPath = portalMode === 'patient' ? '/welcome' : `/${activeTab}`;
     if (window.location.pathname !== targetPath) {
       navigate(targetPath);
     }
@@ -85,7 +89,7 @@ const ClinicAppContent: React.FC = () => {
   const handleSelectPortalMode = (mode: 'admin' | 'patient') => {
     setPortalMode(mode);
     setShowPortalSelectorModal(false);
-    navigate(mode === 'patient' ? '/patient' : '/dashboard');
+    navigate(mode === 'patient' ? '/welcome' : '/dashboard');
   };
 
   const switchTab = (tab: NavTab) => {
@@ -93,26 +97,55 @@ const ClinicAppContent: React.FC = () => {
     navigate(`/${tab}`);
   };
 
+  // Redirect away from any tab this role can't access
+  useEffect(() => {
+    if (!currentProfile) return;
+    if (activeTab === 'financials' && !can('view_financials')) setActiveTab('dashboard');
+    if (activeTab === 'audit' && !can('view_audit_logs')) setActiveTab('dashboard');
+  }, [activeTab, currentProfile, can]);
+
+  // The patient portal is public; the admin side requires signing in.
+  if (portalMode === 'admin') {
+    if (authLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[#DAE3EE] dark:bg-[#2C3137]">
+          <div className="text-xs font-bold text-slate-500 dark:text-slate-400">Loading...</div>
+        </div>
+      );
+    }
+    if (!session || !currentProfile) {
+      return <LoginScreen />;
+    }
+  }
+
   return (
     <div
       className={`min-h-screen flex flex-col transition-colors relative pb-16 md:pb-0 ${
         portalMode === 'admin'
-          ? 'dark:bg-[#00261c] bg-[#f5f2eb]'
-          : 'dark:bg-[#001c15] bg-[#f5f2eb]'
+          ? 'dark:bg-[#2C3137] bg-[#DAE3EE]'
+          : 'bg-clinical-cream dark:bg-[#0d1b28]'
       }`}
     >
-      <Header />
+      {portalMode === 'admin' && (
+        <TopNav
+          activeTab={activeTab}
+          setActiveTab={switchTab}
+          onOpenAiFinancialAdvisor={() => setShowAiAdvisorModal(true)}
+          onOpenNewAppointment={() => switchTab('calendar')}
+          onOpenNewInvoice={() => setShowInvoiceModal(true)}
+          onOpenNewExpense={() => setShowExpenseModal(true)}
+          onOpenUserManagement={() => setShowUserManagement(true)}
+        />
+      )}
 
       <div className="flex flex-1">
-        {portalMode === 'admin' && (
-          <Sidebar
-            activeTab={activeTab}
-            setActiveTab={switchTab}
-            onOpenAiFinancialAdvisor={() => setShowAiAdvisorModal(true)}
-          />
-        )}
-
-        <main className="flex-1 p-3 sm:p-6 overflow-y-auto max-w-7xl mx-auto w-full">
+        <main
+          className={
+            portalMode === 'patient'
+              ? 'flex-1 w-full overflow-y-auto'
+              : 'flex-1 p-3 sm:p-6 overflow-y-auto max-w-7xl mx-auto w-full'
+          }
+        >
           {portalMode === 'patient' ? (
             <DoctorProfileLanding />
           ) : (
@@ -158,12 +191,14 @@ const ClinicAppContent: React.FC = () => {
       {portalMode === 'admin' && (
         <button
           onClick={() => setAiDrawerState(prev => ({ isOpen: !prev.isOpen, initialPrompt: null }))}
-          className="fixed bottom-[74px] md:bottom-6 right-3 md:right-6 z-30 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-[#00cb87] text-white font-black text-xs shadow-2xl border border-emerald-400 flex items-center gap-2 hover:scale-105 transition transform"
+          className="fixed bottom-[74px] md:bottom-6 right-3 md:right-6 z-30 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-[#6AB8FF] text-slate-950 font-black text-xs shadow-2xl border border-[#4FA5F5] flex items-center gap-2 hover:scale-105 transition transform"
         >
           <Sparkles className="w-4 h-4 text-white animate-spin-slow" />
           <span>المساعد الذكي</span>
         </button>
       )}
+
+      {showUserManagement && <UserManagementModal onClose={() => setShowUserManagement(false)} />}
 
       {showPortalSelectorModal && <PortalSelectorModal onSelectPortal={handleSelectPortalMode} />}
 

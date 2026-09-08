@@ -6,3 +6,4 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const ATTACHMENTS_BUCKET = 'patient-attachments';
+export const AVATARS_BUCKET = 'avatars';

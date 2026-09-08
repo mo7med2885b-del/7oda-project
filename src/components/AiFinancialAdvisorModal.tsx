@@ -21,18 +21,18 @@ export const AiFinancialAdvisorModal: React.FC<AiFinancialAdvisorModalProps> = (
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
-      <div className="w-full max-w-2xl rounded-2xl dark:bg-[#00261c] bg-[#f5f2eb] border dark:border-[#00cb87]/40 border-[#00473e]/30 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="w-full max-w-2xl rounded-2xl dark:bg-[#2C3137] bg-[#DAE3EE] border dark:border-[#6AB8FF]/40 border-[#2C3137]/30 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="p-4 sm:p-6 bg-[#001c15] text-white flex items-center justify-between border-b border-[#00cb87]/30">
+        <div className="p-4 sm:p-6 bg-[#22262B] text-white flex items-center justify-between border-b border-[#6AB8FF]/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#00cb87] flex items-center justify-center text-slate-950 shadow-lg shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#6AB8FF] flex items-center justify-center text-slate-950 shadow-lg shrink-0">
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-black tracking-tight text-white uppercase">
                 Executive Financial Advisor
               </h2>
-              <p className="text-xs text-[#00cb87] font-bold">Mohamed Hosny Clinic Cash Flow & Profitability Audit</p>
+              <p className="text-xs text-[#6AB8FF] font-bold">Mohamed Hosny Clinic Cash Flow & Profitability Audit</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition">
@@ -43,9 +43,9 @@ export const AiFinancialAdvisorModal: React.FC<AiFinancialAdvisorModalProps> = (
         {/* Content Body */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 text-xs">
           {/* Executive Overview Box */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-[#001c15] border border-[#00cb87]/40 text-white shadow-md space-y-2">
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#22262B] border border-[#6AB8FF]/40 text-white shadow-md space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold text-[#00cb87] uppercase tracking-wider">
+              <span className="text-[11px] font-extrabold text-[#6AB8FF] uppercase tracking-wider">
                 Cash Flow Executive Summary
               </span>
             </div>
@@ -74,10 +74,10 @@ export const AiFinancialAdvisorModal: React.FC<AiFinancialAdvisorModalProps> = (
           )}
 
           {/* Revenue Projections Card */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-[#001c15] text-white border border-[#00cb87]/40 shadow-md space-y-3">
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#22262B] text-white border border-[#6AB8FF]/40 shadow-md space-y-3">
             <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <h4 className="font-extrabold text-[#00cb87] flex items-center gap-1.5 text-xs">
-                <TrendingUp className="w-4 h-4 text-[#00cb87] shrink-0" />
+              <h4 className="font-extrabold text-[#6AB8FF] flex items-center gap-1.5 text-xs">
+                <TrendingUp className="w-4 h-4 text-[#6AB8FF] shrink-0" />
                 <span>Revenue Forecast (Next Month)</span>
               </h4>
             </div>
@@ -88,14 +88,14 @@ export const AiFinancialAdvisorModal: React.FC<AiFinancialAdvisorModalProps> = (
 
           {/* Growth Action Plan */}
           <div className="space-y-3">
-            <h4 className="font-extrabold text-[#122620] dark:text-white text-xs">
+            <h4 className="font-extrabold text-[#2C3137] dark:text-white text-xs">
               Recommended Financial Optimization Steps
             </h4>
             <div className="space-y-2">
               {insights.growth_recommendations.map((rec, i) => (
-                <div key={i} className="p-4 rounded-2xl dark:bg-[#001c15] bg-white border border-[#e3ded5] dark:border-[#00cb87]/30 flex items-start gap-3 shadow-sm" dir="ltr">
-                  <CheckCircle className="w-5 h-5 text-[#00cb87] shrink-0 mt-0.5" />
-                  <span className="dark:text-slate-100 text-[#122620] font-bold text-xs sm:text-sm leading-relaxed">{rec}</span>
+                <div key={i} className="p-4 rounded-2xl dark:bg-[#22262B] bg-white border border-[#C6D2E2] dark:border-[#6AB8FF]/30 flex items-start gap-3 shadow-sm" dir="ltr">
+                  <CheckCircle className="w-5 h-5 text-[#6AB8FF] shrink-0 mt-0.5" />
+                  <span className="dark:text-slate-100 text-[#2C3137] font-bold text-xs sm:text-sm leading-relaxed">{rec}</span>
                 </div>
               ))}
             </div>
@@ -103,11 +103,11 @@ export const AiFinancialAdvisorModal: React.FC<AiFinancialAdvisorModalProps> = (
         </div>
 
         {/* Footer Bar */}
-        <div className="p-4 bg-[#001c15] border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="p-4 bg-[#22262B] border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
           {onOpenAiPrompt && (
             <button
               onClick={handleAskAiDrawer}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#00cb87] hover:bg-[#00b074] text-slate-950 font-black text-xs shadow-lg transition flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#6AB8FF] hover:bg-[#4FA5F5] text-slate-950 font-black text-xs shadow-lg transition flex items-center justify-center gap-2"
             >
               <Sparkles className="w-4 h-4" />
               <span>متابعة التحليل بالتفصيل في الشات</span>
