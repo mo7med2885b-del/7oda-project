@@ -131,6 +131,56 @@ export interface Expense {
   created_at: string;
 }
 
+export interface Drug {
+  id: string;
+  name: string;
+  name_ar?: string;
+  form?: string;
+  strength?: string;
+  category?: string;
+  unit_cost: number;
+  unit_price: number;
+  stock_qty: number;
+  reorder_level: number;
+  is_active: boolean;
+  notes?: string;
+  image_path?: string | null;
+  created_at: string;
+}
+
+export type MovementType = 'purchase' | 'dispense' | 'adjustment' | 'return' | 'loss';
+
+export interface DrugMovement {
+  id: string;
+  drug_id: string;
+  movement_type: MovementType;
+  quantity: number;
+  unit_price: number;
+  total_value: number;
+  patient_id?: string | null;
+  prescription_id?: string;
+  reason?: string;
+  performed_by?: string;
+  created_at: string;
+}
+
+export interface TemplateItem {
+  drug_name: string;
+  dosage?: string;
+  dosage_ar?: string;
+  duration?: string;
+}
+
+export interface PrescriptionTemplate {
+  id: string;
+  name: string;
+  name_ar?: string;
+  category?: string;
+  notes?: string;
+  items: TemplateItem[];
+  created_at: string;
+}
+
 export type AppRole = 'admin' | 'secretary';
 
 export interface Profile {

@@ -37,3 +37,4 @@ export const isSessionExpired = (): boolean => {
 
 export const ATTACHMENTS_BUCKET = 'patient-attachments';
 export const AVATARS_BUCKET = 'avatars';
+export const DRUG_IMAGES_BUCKET = 'drug-images';

@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Patient, Appointment, MedicalRecord, Invoice, Expense, AuditLog, AppointmentStatus, PatientAttachment, AttachmentCategory, Profile, AppRole } from '../types';
+import { Patient, Appointment, MedicalRecord, Invoice, Expense, AuditLog, AppointmentStatus, PatientAttachment, AttachmentCategory, Profile, AppRole, Drug, DrugMovement, PrescriptionTemplate } from '../types';
 import { translations, Language } from '../utils/i18n';
 import {
   supabase,
   ATTACHMENTS_BUCKET,
   AVATARS_BUCKET,
+  DRUG_IMAGES_BUCKET,
   markSessionStart,
   clearSessionStart,
   isSessionExpired
@@ -23,7 +24,8 @@ export type Permission =
   | 'manage_users'
   | 'take_payments'        // record invoice payments at the front desk
   | 'manage_appointments'
-  | 'manage_patients';
+  | 'manage_patients'
+  | 'manage_inventory';    // drug catalog, stock and dispensing
 
 const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
   admin: [
@@ -34,7 +36,8 @@ const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     'manage_users',
     'take_payments',
     'manage_appointments',
-    'manage_patients'
+    'manage_patients',
+    'manage_inventory'
   ],
   secretary: ['take_payments', 'manage_appointments', 'manage_patients']
 };
@@ -99,6 +102,18 @@ interface ClinicContextType {
   getAttachmentUrl: (filePath: string) => string;
   getAttachmentsByPatient: (patientId: string) => PatientAttachment[];
 
+  // Pharmacy / inventory (admin only)
+  drugs: Drug[];
+  drugMovements: DrugMovement[];
+  prescriptionTemplates: PrescriptionTemplate[];
+  addDrug: (drug: Omit<Drug, 'id' | 'created_at' | 'stock_qty'> & { stock_qty?: number }) => Promise<Drug | undefined>;
+  updateDrug: (id: string, updated: Partial<Drug>) => Promise<void>;
+  deleteDrug: (id: string) => Promise<void>;
+  recordMovement: (mov: Omit<DrugMovement, 'id' | 'created_at' | 'total_value'>) => Promise<void>;
+  refreshPharmacy: () => Promise<void>;
+  uploadDrugImage: (drugId: string, file: File) => Promise<string | undefined>;
+  getDrugImageUrl: (path?: string | null) => string | null;
+
   // Audit Logs
   logAudit: (action: string, entityType: string, entityId: string, details?: Record<string, any>) => Promise<void>;
 
@@ -145,6 +160,9 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [attachments, setAttachments] = useState<PatientAttachment[]>([]);
+  const [drugs, setDrugs] = useState<Drug[]>([]);
+  const [drugMovements, setDrugMovements] = useState<DrugMovement[]>([]);
+  const [prescriptionTemplates, setPrescriptionTemplates] = useState<PrescriptionTemplate[]>([]);
 
   const setPortalMode = (mode: PortalMode) => {
     setPortalModeState(mode);
@@ -295,6 +313,90 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return supabase.storage.from(AVATARS_BUCKET).getPublicUrl(path).data.publicUrl;
   };
 
+  // ---- Pharmacy / inventory (admin only; RLS blocks secretaries) ----
+  const refreshPharmacy = useCallback(async () => {
+    const [{ data: drugsData }, { data: movesData }, { data: tplData }] = await Promise.all([
+      supabase.from('drugs').select('*').order('name'),
+      supabase.from('drug_movements').select('*').order('created_at', { ascending: false }).limit(500),
+      supabase.from('prescription_templates').select('*').order('name')
+    ]);
+    setDrugs(drugsData || []);
+    setDrugMovements(movesData || []);
+    setPrescriptionTemplates(tplData || []);
+  }, []);
+
+  const addDrug = async (drug: Omit<Drug, 'id' | 'created_at' | 'stock_qty'> & { stock_qty?: number }) => {
+    const { data, error } = await supabase.from('drugs').insert(drug).select().single();
+    if (error || !data) {
+      console.error('addDrug failed', error);
+      alert('Failed to add drug: ' + error?.message);
+      return undefined;
+    }
+    setDrugs(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+    logAudit('Add Drug', 'Drug', data.id, { name: data.name });
+    return data;
+  };
+
+  const updateDrug = async (id: string, updated: Partial<Drug>) => {
+    const { error } = await supabase.from('drugs').update(updated).eq('id', id);
+    if (error) {
+      console.error('updateDrug failed', error);
+      return;
+    }
+    setDrugs(prev => prev.map(d => (d.id === id ? { ...d, ...updated } : d)));
+    logAudit('Update Drug', 'Drug', id, updated);
+  };
+
+  const deleteDrug = async (id: string) => {
+    const { error } = await supabase.from('drugs').delete().eq('id', id);
+    if (error) {
+      console.error('deleteDrug failed', error);
+      return;
+    }
+    setDrugs(prev => prev.filter(d => d.id !== id));
+    logAudit('Delete Drug', 'Drug', id);
+  };
+
+  const recordMovement = async (mov: Omit<DrugMovement, 'id' | 'created_at' | 'total_value'>) => {
+    const total_value = Math.abs(mov.quantity) * (mov.unit_price || 0);
+    const { data, error } = await supabase
+      .from('drug_movements')
+      .insert({ ...mov, total_value, performed_by: currentProfile?.full_name })
+      .select()
+      .single();
+    if (error || !data) {
+      console.error('recordMovement failed', error);
+      alert('Failed to record movement: ' + error?.message);
+      return;
+    }
+    setDrugMovements(prev => [data, ...prev]);
+    // The DB trigger adjusts stock_qty; mirror it locally so the UI updates now.
+    setDrugs(prev => prev.map(d => (d.id === mov.drug_id ? { ...d, stock_qty: d.stock_qty + mov.quantity } : d)));
+    logAudit('Stock Movement', 'Drug', mov.drug_id, {
+      type: mov.movement_type,
+      quantity: mov.quantity,
+      value: total_value
+    });
+  };
+
+  const uploadDrugImage = async (drugId: string, file: File) => {
+    const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+    const filePath = `${drugId}-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from(DRUG_IMAGES_BUCKET).upload(filePath, file, { upsert: true });
+    if (upErr) {
+      console.error('uploadDrugImage failed', upErr);
+      alert('Image upload failed: ' + upErr.message);
+      return undefined;
+    }
+    await updateDrug(drugId, { image_path: filePath });
+    return filePath;
+  };
+
+  const getDrugImageUrl = (path?: string | null) => {
+    if (!path) return null;
+    return supabase.storage.from(DRUG_IMAGES_BUCKET).getPublicUrl(path).data.publicUrl;
+  };
+
   const refreshAll = useCallback(async () => {
     setLoading(true);
     const [
@@ -330,7 +432,8 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (!currentProfile) return;
     refreshAll();
     refreshProfiles();
-  }, [currentProfile, refreshAll, refreshProfiles]);
+    if (currentProfile.role === 'admin') refreshPharmacy();
+  }, [currentProfile, refreshAll, refreshProfiles, refreshPharmacy]);
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
@@ -635,6 +738,16 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         deleteAttachment,
         getAttachmentUrl,
         getAttachmentsByPatient,
+        drugs,
+        drugMovements,
+        prescriptionTemplates,
+        addDrug,
+        updateDrug,
+        deleteDrug,
+        recordMovement,
+        refreshPharmacy,
+        uploadDrugImage,
+        getDrugImageUrl,
         logAudit,
         getPatientById,
         getMedicalRecordsByPatient,

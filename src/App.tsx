@@ -18,6 +18,7 @@ import { PortalSelectorModal } from './components/PortalSelectorModal';
 import { FeatherlessAiChatDrawer } from './components/FeatherlessAiChatDrawer';
 import { LoginScreen } from './components/LoginScreen';
 import { UserManagementModal } from './components/UserManagementModal';
+import { PharmacyHub } from './components/PharmacyHub';
 import { Sparkles } from 'lucide-react';
 
 // Map URL pathname → (portalMode, tab)
@@ -31,6 +32,7 @@ const PATH_MAP: Record<string, { mode: 'admin' | 'patient'; tab: NavTab }> = {
   '/patients':   { mode: 'admin',    tab: 'patients' },
   '/financials': { mode: 'admin',    tab: 'financials' },
   '/audit':      { mode: 'admin',    tab: 'audit' },
+  '/pharmacy':   { mode: 'admin',    tab: 'pharmacy' },
 };
 
 const navigate = (path: string) => {
@@ -103,6 +105,7 @@ const ClinicAppContent: React.FC = () => {
     if (!currentProfile) return;
     if (activeTab === 'financials' && !can('view_financials')) setActiveTab('dashboard');
     if (activeTab === 'audit' && !can('view_audit_logs')) setActiveTab('dashboard');
+    if (activeTab === 'pharmacy' && !can('manage_inventory')) setActiveTab('dashboard');
   }, [activeTab, currentProfile, can]);
 
   // The patient portal is public; the admin side requires signing in.
@@ -182,6 +185,7 @@ const ClinicAppContent: React.FC = () => {
                   onOpenTriageModal={patientId => setTriagePatientId(patientId)}
                 />
               )}
+              {activeTab === 'pharmacy' && can('manage_inventory') && <PharmacyHub />}
               {activeTab === 'audit' && <AuditLogsView />}
             </>
           )}

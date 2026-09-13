@@ -16,7 +16,8 @@ import {
   Globe,
   Heart,
   UserCog,
-  LogOut
+  LogOut,
+  Pill
 } from 'lucide-react';
 
 interface TopNavProps {
@@ -104,6 +105,15 @@ export const TopNav: React.FC<TopNavProps> = ({
       ]
     },
     {
+      id: 'pharmacy',
+      label: lang === 'ar' ? 'الصيدلية' : 'Pharmacy',
+      icon: Pill,
+      actions: [
+        { label: lang === 'ar' ? 'المخزون والكتالوج' : 'Stock & Catalog', run: () => setActiveTab('pharmacy') },
+        { label: lang === 'ar' ? 'بروتوكولات العلاج' : 'Prescription Protocols', run: () => setActiveTab('pharmacy') }
+      ]
+    },
+    {
       id: 'audit',
       label: lang === 'ar' ? 'سجل التدقيق' : 'Audit Logs',
       icon: ShieldCheck,
@@ -115,6 +125,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   const navItems = allNavItems.filter(item => {
     if (item.id === 'financials') return can('view_financials');
     if (item.id === 'audit') return can('view_audit_logs');
+    if (item.id === 'pharmacy') return can('manage_inventory');
     return true;
   });
 

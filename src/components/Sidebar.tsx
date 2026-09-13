@@ -2,7 +2,7 @@ import React from 'react';
 import { useClinic } from '../context/ClinicContext';
 import { LayoutDashboard, Users, Landmark, Calendar, ShieldCheck, Sparkles, Stethoscope } from 'lucide-react';
 
-export type NavTab = 'dashboard' | 'patients' | 'financials' | 'calendar' | 'doctor_profile' | 'audit';
+export type NavTab = 'dashboard' | 'patients' | 'financials' | 'calendar' | 'doctor_profile' | 'audit' | 'pharmacy';
 
 interface SidebarProps {
   activeTab: NavTab;
