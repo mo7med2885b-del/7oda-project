@@ -6,6 +6,7 @@ import { useReveal } from '../hooks/useReveal';
 import { ServiceShowcase } from './ServiceShowcase';
 import { TestimonialDrift } from './TestimonialDrift';
 import { VideoShowcase } from './VideoShowcase';
+import { EditorialCarousel } from './EditorialCarousel';
 import { PortalNav } from './PortalNav';
 import { WhatsAppFab } from './WhatsAppFab';
 import { buildWhatsAppLink } from '../utils/whatsapp';
@@ -957,6 +958,13 @@ export const DoctorProfileLanding: React.FC = () => {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ============================================================
+          10b. EDITORIAL VISUAL BREAK (decorative — ThreeUI CharacterCarousel)
+      ============================================================ */}
+      <section className="mx-auto max-w-[1240px] px-5 sm:px-8 py-16 sm:py-20">
+        <EditorialCarousel />
       </section>
 
       {/* ============================================================

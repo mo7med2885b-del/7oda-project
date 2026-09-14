@@ -95,6 +95,87 @@
   animation-direction: reverse;
 }
 
+/* Editorial filmstrip — cursor-reactive video deck (see VideoShowcase.tsx) */
+.clinical-filmstrip-stage {
+  --pointer-x: 50%;
+  isolation: isolate;
+  background:
+    linear-gradient(90deg, rgba(80, 58, 31, 0.08) 1px, transparent 1px) 50% 0 / 25% 100%,
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 109px,
+      rgba(72, 52, 30, 0.13) 110px,
+      transparent 111px
+    ),
+    radial-gradient(circle at var(--pointer-x) 48%, rgba(255, 246, 220, 0.6), transparent 34%),
+    #d8c9ad;
+}
+.clinical-filmstrip-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.27;
+  background:
+    repeating-radial-gradient(circle at 12% 18%, rgba(71, 51, 30, 0.17) 0 0.5px, transparent 0.7px 4px),
+    repeating-radial-gradient(circle at 78% 71%, rgba(255, 255, 255, 0.35) 0 0.5px, transparent 0.8px 5px);
+  mix-blend-mode: multiply;
+}
+.clinical-filmstrip-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(84, 58, 29, 0.19),
+    transparent 14%,
+    transparent 86%,
+    rgba(84, 58, 29, 0.19)
+  );
+}
+.clinical-filmstrip-card {
+  --focus: 0;
+  box-shadow:
+    0 calc(10px + var(--focus) * 24px) calc(18px + var(--focus) * 36px)
+      rgba(57, 38, 19, calc(0.2 + var(--focus) * 0.26)),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.64);
+}
+.clinical-filmstrip-card:focus-visible {
+  box-shadow:
+    0 26px 50px rgba(57, 38, 19, 0.42),
+    0 0 0 4px rgba(197, 79, 25, 0.34);
+}
+.clinical-filmstrip-img {
+  transform: scale(calc(1.04 + (1 - var(--focus, 0)) * 0.06));
+  filter:
+    sepia(calc((1 - var(--focus, 0)) * 0.24))
+    saturate(calc(0.66 + var(--focus, 0) * 0.34))
+    contrast(1.04);
+}
+@media (max-width: 650px) {
+  .clinical-filmstrip-stage {
+    cursor: ns-resize;
+    background:
+      linear-gradient(90deg, rgba(80, 58, 31, 0.08) 1px, transparent 1px) 50% 0 / 50% 100%,
+      repeating-linear-gradient(
+        0deg,
+        transparent 0,
+        transparent 87px,
+        rgba(72, 52, 30, 0.13) 88px,
+        transparent 89px
+      ),
+      radial-gradient(circle at 50% 50%, rgba(255, 246, 220, 0.6), transparent 35%),
+      #d8c9ad;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clinical-filmstrip-card { will-change: auto; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .clinical-aurora::before,
   .clinical-marquee-track { animation: none; }
