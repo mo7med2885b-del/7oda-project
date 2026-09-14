@@ -694,17 +694,32 @@ const GivePanel: React.FC = () => {
 
 /* ------------------------------------------------------------------ */
 const AddDrugModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { lang, addDrug } = useClinic();
+  const { lang, addDrug, uploadDrugImage } = useClinic();
   const isAr = lang === 'ar';
   const [f, setF] = useState({ name: '', name_ar: '', category: '', unit_price: 0, stock_qty: 0, reorder_level: 5 });
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const field =
     'w-full min-h-[44px] px-3.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/25 text-sm text-[#2C3137] dark:text-white focus:outline-none focus:border-[#6AB8FF] focus:ring-4 focus:ring-[#6AB8FF]/15';
   const label = 'text-xs font-semibold text-[#2C3137] dark:text-slate-200 mb-1.5 block';
 
+  const pickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhoto(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await addDrug({ ...f, unit_cost: 0, form: 'tab', strength: '', is_active: true });
+    setSaving(true);
+    const created = await addDrug({ ...f, unit_cost: 0, form: 'tab', strength: '', is_active: true });
+    if (created && photo) {
+      await uploadDrugImage(created.id, photo);
+    }
+    setSaving(false);
     onClose();
   };
 
@@ -724,6 +739,27 @@ const AddDrugModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
+        </div>
+
+        {/* Photo upload */}
+        <div>
+          <label className={label} htmlFor="dph">{isAr ? 'صورة الدواء' : 'Drug photo'}</label>
+          <label
+            htmlFor="dph"
+            className="flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-[#C6D2E2] dark:border-[#6AB8FF]/25 hover:border-[#6AB8FF] cursor-pointer transition"
+          >
+            {photoPreview ? (
+              <img src={photoPreview} alt="" className="w-14 h-14 rounded-lg object-contain bg-white border border-[#C6D2E2] shrink-0" />
+            ) : (
+              <span className="w-14 h-14 rounded-lg bg-[#FCFDFF] dark:bg-[#22262B] flex items-center justify-center shrink-0">
+                <Camera className="w-5 h-5 text-[#7C7C7C]" aria-hidden="true" />
+              </span>
+            )}
+            <span className="text-sm font-semibold text-[#2C3137] dark:text-white">
+              {photo ? (isAr ? 'تغيير الصورة' : 'Change photo') : isAr ? 'اختر صورة' : 'Choose a photo'}
+            </span>
+          </label>
+          <input id="dph" type="file" accept="image/*" capture="environment" className="hidden" onChange={pickPhoto} />
         </div>
 
         <div>
@@ -758,8 +794,12 @@ const AddDrugModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           </div>
         </div>
 
-        <button type="submit" className="w-full min-h-[48px] rounded-xl bg-[#6AB8FF] hover:bg-[#4FA5F5] text-white font-bold text-sm shadow transition">
-          {isAr ? 'حفظ' : 'Save'}
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full min-h-[48px] rounded-xl bg-[#6AB8FF] hover:bg-[#4FA5F5] disabled:opacity-60 text-white font-bold text-sm shadow transition"
+        >
+          {saving ? (isAr ? 'جارٍ الحفظ...' : 'Saving...') : isAr ? 'حفظ' : 'Save'}
         </button>
       </form>
     </div>

@@ -17,7 +17,8 @@ import {
   Heart,
   UserCog,
   LogOut,
-  Pill
+  Pill,
+  AlertTriangle
 } from 'lucide-react';
 
 interface TopNavProps {
@@ -46,7 +47,11 @@ export const TopNav: React.FC<TopNavProps> = ({
   onOpenNewExpense,
   onOpenUserManagement
 }) => {
-  const { t, lang, theme, toggleTheme, toggleLang, setPortalMode, currentProfile, getAvatarUrl, signOut, can } = useClinic();
+  const { t, lang, theme, toggleTheme, toggleLang, setPortalMode, currentProfile, getAvatarUrl, signOut, can, drugs } = useClinic();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  const lowStockDrugs = can('manage_inventory') ? drugs.filter(d => d.stock_qty <= d.reorder_level) : [];
   const [openMenu, setOpenMenu] = useState<NavTab | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
@@ -56,6 +61,7 @@ export const TopNav: React.FC<TopNavProps> = ({
     const onClickOutside = (e: MouseEvent) => {
       if (navRef.current && !navRef.current.contains(e.target as Node)) setOpenMenu(null);
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
     };
     document.addEventListener('mousedown', onClickOutside);
     return () => document.removeEventListener('mousedown', onClickOutside);
@@ -241,9 +247,80 @@ export const TopNav: React.FC<TopNavProps> = ({
               className="bg-transparent text-[11px] text-[#2C3137] dark:text-white placeholder:text-slate-400 focus:outline-none w-full"
             />
           </div>
-          <button className="p-2.5 rounded-full bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/25 shadow-sm text-slate-500 dark:text-slate-300 hover:text-[#6AB8FF] transition">
-            <Bell className="w-4 h-4" />
-          </button>
+          <div ref={notifRef} className="relative">
+            <button
+              onClick={() => setNotifOpen(o => !o)}
+              aria-label={lang === 'ar' ? 'الإشعارات' : 'Notifications'}
+              aria-expanded={notifOpen}
+              className="relative min-w-[44px] min-h-[44px] rounded-full bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/25 shadow-sm text-slate-500 dark:text-slate-300 hover:text-[#6AB8FF] transition flex items-center justify-center focus:outline-none focus-visible:ring-4 focus-visible:ring-[#6AB8FF]/30"
+            >
+              <Bell className="w-4 h-4" aria-hidden="true" />
+              {lowStockDrugs.length > 0 && (
+                <span
+                  className="absolute -top-1 -end-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center border-2 border-white dark:border-[#22262B]"
+                  aria-hidden="true"
+                >
+                  {lowStockDrugs.length}
+                </span>
+              )}
+            </button>
+
+            {notifOpen && (
+              <div className="absolute top-full mt-2 end-0 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-2xl bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/25 shadow-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-[#C6D2E2] dark:border-white/10 flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-[#2C3137] dark:text-white">
+                    {lang === 'ar' ? 'الإشعارات' : 'Notifications'}
+                  </h3>
+                  {lowStockDrugs.length > 0 && (
+                    <span className="text-xs font-bold text-rose-500">
+                      {lowStockDrugs.length} {lang === 'ar' ? 'تنبيه' : 'alerts'}
+                    </span>
+                  )}
+                </div>
+
+                {lowStockDrugs.length === 0 ? (
+                  <div className="px-4 py-8 text-center">
+                    <Bell className="w-6 h-6 text-slate-300 dark:text-slate-600 mx-auto mb-2" aria-hidden="true" />
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      {lang === 'ar' ? 'لا توجد إشعارات جديدة' : 'No new notifications'}
+                    </p>
+                  </div>
+                ) : (
+                  <ul className="max-h-80 overflow-y-auto divide-y divide-[#C6D2E2] dark:divide-white/10">
+                    {lowStockDrugs.map(d => (
+                      <li key={d.id}>
+                        <button
+                          onClick={() => {
+                            setActiveTab('pharmacy');
+                            setNotifOpen(false);
+                          }}
+                          className="w-full min-h-[44px] flex items-center gap-3 px-4 py-3 text-start hover:bg-[#FCFDFF] dark:hover:bg-[#2C3137] transition"
+                        >
+                          <span
+                            className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                              d.stock_qty <= 0 ? 'bg-rose-500/15 text-rose-500' : 'bg-amber-500/15 text-amber-500'
+                            }`}
+                          >
+                            <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-bold text-[#2C3137] dark:text-white truncate">{d.name}</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                              {d.stock_qty <= 0
+                                ? lang === 'ar' ? 'نفد المخزون' : 'Out of stock'
+                                : lang === 'ar'
+                                ? `الكمية المتبقية: ${d.stock_qty} (حد التنبيه ${d.reorder_level})`
+                                : `${d.stock_qty} left (alert at ${d.reorder_level})`}
+                            </div>
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
           <button
             onClick={onOpenAiFinancialAdvisor}
             className="p-2.5 rounded-full bg-white dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/25 shadow-sm text-slate-500 dark:text-slate-300 hover:text-[#6AB8FF] transition"
