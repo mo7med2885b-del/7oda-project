@@ -10,7 +10,7 @@ interface FeatherlessAiChatDrawerProps {
 }
 
 export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = ({ isOpen, onClose, initialPrompt }) => {
-  const { lang, appointments } = useClinic();
+  const { lang, appointments, patients, drugs, can } = useClinic();
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -52,7 +52,7 @@ export const FeatherlessAiChatDrawer: React.FC<FeatherlessAiChatDrawerProps> = (
 
     try {
       const todayDateStr = new Date().toISOString().split('T')[0];
-      const systemPrompt = buildClinicSystemPrompt(appointments, todayDateStr);
+      const systemPrompt = buildClinicSystemPrompt(appointments, todayDateStr, patients, can('manage_inventory') ? drugs : []);
 
       const fullPayload: FeatherlessChatMessage[] = [
         { role: 'system', content: systemPrompt },

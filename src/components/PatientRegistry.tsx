@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useClinic } from '../context/ClinicContext';
 import { doctorInfo } from '../utils/i18n';
-import { Users, Search, UserPlus, FileText, AlertTriangle, Phone, Trash2, Sparkles, Upload } from 'lucide-react';
+import { Users, Search, UserPlus, FileText, AlertTriangle, Phone, Trash2, Sparkles, Upload, MapPin } from 'lucide-react';
 
 interface PatientRegistryProps {
   onViewPatientDossier: (patientId: string) => void;
@@ -45,7 +45,7 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
       p.id.toLowerCase().includes(q);
 
     const matchesBlood = bloodFilter === 'all' || p.blood_type === bloodFilter;
-    const matchesBranch = branchFilter === 'all' || (p.medical_alerts && p.medical_alerts.includes(branchFilter));
+    const matchesBranch = branchFilter === 'all' || p.branch_id === branchFilter;
 
     return matchesSearch && matchesBlood && matchesBranch;
   });
@@ -57,9 +57,6 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
       return;
     }
 
-    const branchObj = doctorInfo.branches.find(b => b.id === preferredBranch);
-    const branchLabel = branchObj ? (lang === 'ar' ? branchObj.city_ar : branchObj.city_en) : '';
-
     const created = await addPatient({
       full_name: fullName,
       phone,
@@ -67,9 +64,10 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
       age: Number(age),
       gender,
       blood_type: bloodType,
-      medical_alerts: `${medicalAlerts || 'None'} [الفرع: ${branchLabel}]`,
+      medical_alerts: medicalAlerts || 'None',
       allergies: allergies || 'None',
-      emergency_contact: emergencyContact || 'N/A'
+      emergency_contact: emergencyContact || 'N/A',
+      branch_id: preferredBranch
     });
 
     if (!created) {
@@ -179,14 +177,26 @@ export const PatientRegistry: React.FC<PatientRegistryProps> = ({ onViewPatientD
             </div>
 
             <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1.5">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-bold text-[#2C3137] dark:text-white">{patient.age} سنة ({patient.gender === 'Female' ? 'أنثى' : 'ذكر'})</span>
                 <span className="text-slate-300">|</span>
                 <Phone className="w-3.5 h-3.5 text-slate-400 inline" />
                 <span className="font-mono" dir="ltr">{patient.phone}</span>
               </div>
 
-              {patient.medical_alerts && (
+              {patient.branch_id && (
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#6AB8FF] shrink-0" />
+                  <span className="font-bold text-[#2C3137] dark:text-white">
+                    {(() => {
+                      const b = doctorInfo.branches.find(x => x.id === patient.branch_id);
+                      return b ? (lang === 'ar' ? b.city_ar : b.city_en) : patient.branch_id;
+                    })()}
+                  </span>
+                </div>
+              )}
+
+              {patient.medical_alerts && patient.medical_alerts !== 'None' && (
                 <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-950 dark:text-amber-200 font-bold text-[11px] flex items-start gap-1.5">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
                   <span>{patient.medical_alerts}</span>

@@ -14,7 +14,8 @@ import {
   Trash2,
   Camera,
   ImageIcon,
-  Check
+  Check,
+  Pencil
 } from 'lucide-react';
 
 type Tab = 'stock' | 'give' | 'protocols';
@@ -87,6 +88,7 @@ export const PharmacyHub: React.FC = () => {
   const [search, setSearch] = useState('');
   const [showAddDrug, setShowAddDrug] = useState(false);
   const [movementDrug, setMovementDrug] = useState<Drug | null>(null);
+  const [priceDrug, setPriceDrug] = useState<Drug | null>(null);
 
   const egp = (n: number) => `${Math.round(n).toLocaleString()}`;
 
@@ -355,14 +357,19 @@ export const PharmacyHub: React.FC = () => {
                         {d.stock_qty}
                       </div>
                     </div>
-                    <div className="rounded-xl bg-[#6AB8FF]/10 p-2.5">
-                      <div className="text-[11px] font-semibold text-[#7C7C7C] dark:text-slate-400">
+                    <button
+                      onClick={() => setPriceDrug(d)}
+                      aria-label={isAr ? `تعديل سعر ${d.name}` : `Edit price for ${d.name}`}
+                      className="rounded-xl bg-[#6AB8FF]/10 p-2.5 text-start hover:bg-[#6AB8FF]/20 transition focus:outline-none focus-visible:ring-4 focus-visible:ring-[#6AB8FF]/30 group"
+                    >
+                      <div className="text-[11px] font-semibold text-[#7C7C7C] dark:text-slate-400 flex items-center gap-1">
                         {isAr ? 'السعر' : 'Price'}
+                        <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition" aria-hidden="true" />
                       </div>
                       <div className="text-2xl font-black text-[#6AB8FF] leading-none mt-1" dir="ltr">
                         {egp(d.unit_price)}
                       </div>
-                    </div>
+                    </button>
                   </div>
 
                   <div className="px-4 pb-4 flex gap-2">
@@ -433,6 +440,7 @@ export const PharmacyHub: React.FC = () => {
 
       {showAddDrug && <AddDrugModal onClose={() => setShowAddDrug(false)} />}
       {movementDrug && <MovementModal drug={movementDrug} onClose={() => setMovementDrug(null)} />}
+      {priceDrug && <PriceEditModal drug={priceDrug} onClose={() => setPriceDrug(null)} />}
     </div>
   );
 };
@@ -932,6 +940,90 @@ const MovementModal: React.FC<{ drug: Drug; onClose: () => void }> = ({ drug, on
           className="w-full min-h-[48px] rounded-xl bg-[#6AB8FF] hover:bg-[#4FA5F5] disabled:opacity-50 text-white font-bold text-sm shadow transition"
         >
           {after < 0 ? (isAr ? 'الكمية غير كافية' : 'Not enough stock') : isAr ? 'حفظ' : 'Save'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+const PriceEditModal: React.FC<{ drug: Drug; onClose: () => void }> = ({ drug, onClose }) => {
+  const { lang, updateDrug } = useClinic();
+  const isAr = lang === 'ar';
+  const [price, setPrice] = useState(drug.unit_price);
+  const [saving, setSaving] = useState(false);
+
+  const field =
+    'w-full min-h-[48px] px-3.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/25 text-lg font-mono font-black text-[#2C3137] dark:text-white focus:outline-none focus:border-[#6AB8FF] focus:ring-4 focus:ring-[#6AB8FF]/15';
+
+  const diff = price - drug.unit_price;
+
+  // updateDrug already writes an "Update Drug" audit log entry with the changed fields.
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (price < 0) return;
+    setSaving(true);
+    await updateDrug(drug.id, { unit_price: price });
+    setSaving(false);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-3">
+      <form
+        onSubmit={submit}
+        className="w-full max-w-xs rounded-2xl bg-white dark:bg-[#2C3137] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 shadow-2xl p-5 space-y-4"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <DrugImage drug={drug} size="thumb" />
+            <div className="min-w-0">
+              <h3 className="font-black text-[#2C3137] dark:text-white text-sm truncate">{drug.name}</h3>
+              <p className="text-xs text-[#7C7C7C]" dir="ltr">
+                {isAr ? 'السعر الحالي' : 'Current'}: {Math.round(drug.unit_price)} {isAr ? 'ج.م' : 'EGP'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={isAr ? 'إغلاق' : 'Close'}
+            className="w-11 h-11 rounded-lg text-[#7C7C7C] hover:text-rose-500 flex items-center justify-center shrink-0"
+          >
+            <X className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-[#2C3137] dark:text-slate-200 mb-1.5 block" htmlFor="pe-price">
+            {isAr ? 'السعر الجديد (ج.م)' : 'New price (EGP)'}
+          </label>
+          <input
+            id="pe-price"
+            type="number"
+            min={0}
+            step="1"
+            autoFocus
+            value={price}
+            onChange={e => setPrice(Number(e.target.value))}
+            className={field}
+            dir="ltr"
+          />
+        </div>
+
+        {diff !== 0 && (
+          <div className={`p-2.5 rounded-xl text-sm font-bold text-center ${diff > 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'}`}>
+            {diff > 0 ? '+' : ''}
+            {Math.round(diff)} {isAr ? 'ج.م' : 'EGP'} ({isAr ? (diff > 0 ? 'زيادة' : 'خفض') : diff > 0 ? 'increase' : 'decrease'})
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={saving || price < 0}
+          className="w-full min-h-[48px] rounded-xl bg-[#6AB8FF] hover:bg-[#4FA5F5] disabled:opacity-60 text-white font-bold text-sm shadow transition"
+        >
+          {saving ? (isAr ? 'جارٍ الحفظ...' : 'Saving...') : isAr ? 'حفظ السعر' : 'Save Price'}
         </button>
       </form>
     </div>

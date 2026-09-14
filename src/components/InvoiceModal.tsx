@@ -8,7 +8,8 @@ interface InvoiceModalProps {
 }
 
 export const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose }) => {
-  const { patients, appointments, addInvoice } = useClinic();
+  const { patients, addInvoice, lang } = useClinic();
+  const isAr = lang === 'ar';
 
   const [patientId, setPatientId] = useState(patients[0]?.id || '');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Cash');
@@ -16,7 +17,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose }) => {
   const [discount, setDiscount] = useState(0);
 
   const [items, setItems] = useState<{ id: string; description: string; quantity: number; unit_price: number }[]>([
-    { id: '1', description: 'Consultation & Specialist Examination', quantity: 1, unit_price: 500 }
+    { id: '1', description: isAr ? 'كشف واستشارة طبية' : 'Consultation & Specialist Examination', quantity: 1, unit_price: 500 }
   ]);
 
   const selectedPatient = patients.find(p => p.id === patientId);
@@ -32,14 +33,17 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose }) => {
   const subtotal = items.reduce((acc, curr) => acc + curr.quantity * curr.unit_price, 0);
   const totalAmount = Math.max(0, subtotal - discount);
 
+  const field =
+    'w-full min-h-[44px] p-2.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] border border-[#C6D2E2] dark:border-[#6AB8FF]/25 text-sm text-[#2C3137] dark:text-white focus:outline-none focus:border-[#6AB8FF] focus:ring-4 focus:ring-[#6AB8FF]/15';
+  const label = 'block text-xs font-semibold text-[#2C3137] dark:text-slate-200 mb-1.5';
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPatient) {
-      alert('Please select a patient.');
+      alert(isAr ? 'يرجى اختيار مريضة.' : 'Please select a patient.');
       return;
     }
 
-    const todayStr = new Date().toISOString().split('T')[0];
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 7);
 
@@ -63,32 +67,31 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose }) => {
       due_date: dueDate.toISOString().split('T')[0]
     });
 
-    alert('Invoice created successfully!');
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl rounded-2xl dark:bg-[#00182e] bg-white border dark:border-[#00d9ff]/30 border-slate-200 shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b dark:border-slate-800 pb-3">
-          <h3 className="text-xl font-bold dark:text-white text-slate-900 flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-[#00d9ff]" />
-            Issue New Patient Invoice
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl rounded-2xl bg-white dark:bg-[#2C3137] border border-[#C6D2E2] dark:border-[#6AB8FF]/30 shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between border-b border-[#C6D2E2] dark:border-white/10 pb-3">
+          <h3 className="text-xl font-bold text-[#2C3137] dark:text-white flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-[#6AB8FF]" aria-hidden="true" />
+            {isAr ? 'إصدار فاتورة جديدة' : 'Issue New Patient Invoice'}
           </h3>
-          <button onClick={onClose} className="p-1 rounded text-slate-400 hover:text-white">
-            <X className="w-5 h-5" />
+          <button
+            onClick={onClose}
+            aria-label={isAr ? 'إغلاق' : 'Close'}
+            className="min-w-[44px] min-h-[44px] rounded-lg text-[#7C7C7C] hover:text-rose-500 hover:bg-rose-500/10 transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+          >
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-4 text-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-400 font-bold mb-1">Select Patient *</label>
-              <select
-                value={patientId}
-                onChange={e => setPatientId(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 text-slate-900 dark:text-white font-bold"
-              >
+              <label className={label} htmlFor="inv-patient">{isAr ? 'اختر المريضة *' : 'Select Patient *'}</label>
+              <select id="inv-patient" value={patientId} onChange={e => setPatientId(e.target.value)} className={`${field} font-bold`}>
                 {patients.map(p => (
                   <option key={p.id} value={p.id}>
                     {p.full_name} ({p.phone})
@@ -98,39 +101,34 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose }) => {
             </div>
 
             <div>
-              <label className="block text-slate-400 font-bold mb-1">Payment Method</label>
-              <select
-                value={paymentMethod}
-                onChange={e => setPaymentMethod(e.target.value as any)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 text-slate-900 dark:text-white"
-              >
-                <option value="Cash">Cash</option>
-                <option value="Credit Card">Credit Card</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-                <option value="Insurance Split">Insurance Split</option>
+              <label className={label} htmlFor="inv-method">{isAr ? 'طريقة الدفع' : 'Payment Method'}</label>
+              <select id="inv-method" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as any)} className={field}>
+                <option value="Cash">{isAr ? 'نقدي' : 'Cash'}</option>
+                <option value="Credit Card">{isAr ? 'بطاقة ائتمان' : 'Credit Card'}</option>
+                <option value="Bank Transfer">{isAr ? 'تحويل بنكي' : 'Bank Transfer'}</option>
+                <option value="Insurance Split">{isAr ? 'تأمين' : 'Insurance Split'}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-slate-400 font-bold mb-1">Payment Status</label>
-              <select
-                value={paymentStatus}
-                onChange={e => setPaymentStatus(e.target.value as any)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 text-slate-900 dark:text-white font-bold"
-              >
-                <option value="Paid">Paid (Full)</option>
-                <option value="Partially Paid">Partially Paid</option>
-                <option value="Draft">Draft / Pending</option>
+              <label className={label} htmlFor="inv-status">{isAr ? 'حالة الدفع' : 'Payment Status'}</label>
+              <select id="inv-status" value={paymentStatus} onChange={e => setPaymentStatus(e.target.value as any)} className={`${field} font-bold`}>
+                <option value="Paid">{isAr ? 'مدفوعة بالكامل' : 'Paid (Full)'}</option>
+                <option value="Partially Paid">{isAr ? 'مدفوعة جزئياً' : 'Partially Paid'}</option>
+                <option value="Draft">{isAr ? 'معلقة' : 'Draft / Pending'}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-slate-400 font-bold mb-1">Discount (EGP)</label>
+              <label className={label} htmlFor="inv-discount">{isAr ? 'الخصم (ج.م)' : 'Discount (EGP)'}</label>
               <input
+                id="inv-discount"
                 type="number"
+                min={0}
                 value={discount}
                 onChange={e => setDiscount(Number(e.target.value))}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-[#00d9ff]/20 text-slate-900 dark:text-white"
+                className={field}
+                dir="ltr"
               />
             </div>
           </div>
@@ -138,9 +136,13 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose }) => {
           {/* Itemized Services Breakdown */}
           <div className="space-y-2 pt-2">
             <div className="flex items-center justify-between">
-              <h4 className="font-bold dark:text-white">Itemized Services & Diagnostics</h4>
-              <button type="button" onClick={addItemRow} className="text-[#00d9ff] font-bold text-xs flex items-center gap-1">
-                <Plus className="w-3.5 h-3.5" /> Add Line Item
+              <h4 className="font-bold text-[#2C3137] dark:text-white">{isAr ? 'بنود الفاتورة' : 'Itemized Services & Diagnostics'}</h4>
+              <button
+                type="button"
+                onClick={addItemRow}
+                className="min-h-[44px] px-3 rounded-lg text-[#6AB8FF] font-bold text-sm flex items-center gap-1.5 hover:bg-[#6AB8FF]/10 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6AB8FF]"
+              >
+                <Plus className="w-4 h-4" aria-hidden="true" /> {isAr ? 'إضافة بند' : 'Add Line Item'}
               </button>
             </div>
 
@@ -148,55 +150,66 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ onClose }) => {
               <div key={item.id} className="grid grid-cols-3 sm:grid-cols-6 gap-2 items-center">
                 <input
                   type="text"
-                  placeholder="Service description"
+                  placeholder={isAr ? 'وصف الخدمة' : 'Service description'}
                   value={item.description}
                   onChange={e => {
                     const v = e.target.value;
                     setItems(prev => prev.map(i => (i.id === item.id ? { ...i, description: v } : i)));
                   }}
-                  className="col-span-3 p-2 rounded bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                  className={`${field} col-span-3`}
                 />
                 <input
                   type="number"
-                  placeholder="Qty"
+                  placeholder={isAr ? 'العدد' : 'Qty'}
                   value={item.quantity}
                   onChange={e => {
                     const v = Number(e.target.value);
                     setItems(prev => prev.map(i => (i.id === item.id ? { ...i, quantity: v } : i)));
                   }}
-                  className="p-2 rounded bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono"
+                  className={`${field} font-mono`}
+                  dir="ltr"
                 />
                 <input
                   type="number"
-                  placeholder="Price"
+                  placeholder={isAr ? 'السعر' : 'Price'}
                   value={item.unit_price}
                   onChange={e => {
                     const v = Number(e.target.value);
                     setItems(prev => prev.map(i => (i.id === item.id ? { ...i, unit_price: v } : i)));
                   }}
-                  className="p-2 rounded bg-slate-50 dark:bg-[#00101f] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono"
+                  className={`${field} font-mono`}
+                  dir="ltr"
                 />
-                <button type="button" onClick={() => removeItemRow(item.id)} className="text-rose-400 justify-self-center">
-                  <Trash2 className="w-4 h-4" />
+                <button
+                  type="button"
+                  onClick={() => removeItemRow(item.id)}
+                  aria-label={isAr ? 'حذف البند' : 'Remove item'}
+                  className="min-w-[44px] min-h-[44px] rounded-lg text-rose-500 hover:bg-rose-500/10 justify-self-center flex items-center justify-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                >
+                  <Trash2 className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             ))}
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-100 dark:bg-[#00101f] flex items-center justify-between font-mono text-sm">
-            <span className="font-bold text-slate-500">Total Invoice Amount:</span>
-            <span className="font-black text-[#00d9ff]">EGP {totalAmount.toFixed(2)}</span>
+          <div className="p-3.5 rounded-xl bg-[#FCFDFF] dark:bg-[#22262B] flex items-center justify-between font-mono text-sm">
+            <span className="font-bold text-[#7C7C7C] dark:text-slate-400">{isAr ? 'إجمالي الفاتورة:' : 'Total Invoice Amount:'}</span>
+            <span className="font-black text-[#6AB8FF]" dir="ltr">EGP {totalAmount.toFixed(2)}</span>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t dark:border-slate-800">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-slate-400">
-              Cancel
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#C6D2E2] dark:border-white/10">
+            <button
+              type="button"
+              onClick={onClose}
+              className="min-h-[44px] px-4 rounded-lg text-[#7C7C7C] dark:text-slate-400 font-semibold hover:text-[#2C3137] dark:hover:text-white transition"
+            >
+              {isAr ? 'إلغاء' : 'Cancel'}
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#0284c7] to-[#00d9ff] text-slate-950 font-black shadow-lg"
+              className="min-h-[44px] px-5 rounded-xl bg-[#6AB8FF] hover:bg-[#4FA5F5] text-white font-black shadow-lg transition focus:outline-none focus-visible:ring-4 focus-visible:ring-[#6AB8FF]/30"
             >
-              Generate Invoice
+              {isAr ? 'إصدار الفاتورة' : 'Generate Invoice'}
             </button>
           </div>
         </form>

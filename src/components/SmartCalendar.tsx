@@ -718,7 +718,13 @@ export const SmartCalendar: React.FC<SmartCalendarProps> = ({ onOpenTriageModal 
                 <CalendarCheck className="w-5 h-5 text-[#6AB8FF]" />
                 {lang === 'ar' ? 'حجز موعد كشف جديد' : 'New Appointment Booking'}
               </h3>
-              <button onClick={() => setShowBookingModal(false)} className="text-slate-400 hover:text-white p-1">✕</button>
+              <button
+                onClick={() => setShowBookingModal(false)}
+                aria-label={lang === 'ar' ? 'إغلاق' : 'Close'}
+                className="min-w-[44px] min-h-[44px] rounded-lg text-[#7C7C7C] hover:text-rose-500 hover:bg-rose-500/10 transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+              >
+                <X className="w-5 h-5" aria-hidden="true" />
+              </button>
             </div>
 
             {/* Toggle Patient Selection Mode */}

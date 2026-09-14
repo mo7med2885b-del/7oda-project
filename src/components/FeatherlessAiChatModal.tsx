@@ -10,7 +10,7 @@ interface FeatherlessAiChatModalProps {
 }
 
 export const FeatherlessAiChatModal: React.FC<FeatherlessAiChatModalProps> = ({ isOpen, onClose }) => {
-  const { appointments, invoices, lang } = useClinic();
+  const { appointments, invoices, patients, drugs, can, lang } = useClinic();
 
   const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('featherless_api_key') || '');
   const [showKeyInput, setShowKeyInput] = useState<boolean>(!localStorage.getItem('featherless_api_key'));
@@ -70,14 +70,8 @@ export const FeatherlessAiChatModal: React.FC<FeatherlessAiChatModalProps> = ({ 
 
     try {
       // Build Clinic System Prompt
-      const systemPrompt = buildClinicSystemPrompt({
-        doctorName: doctorInfo.name_ar,
-        appointmentsCount: appointments.length,
-        grossRevenue: grossInflow,
-        pendingReceivables: 12500,
-        icsiSuccessRate: '78.4%',
-        branches: doctorInfo.branches.map(b => b.city_ar)
-      });
+      const todayDateStr = new Date().toISOString().split('T')[0];
+      const systemPrompt = buildClinicSystemPrompt(appointments, todayDateStr, patients, can('manage_inventory') ? drugs : []);
 
       const fullPayload: FeatherlessChatMessage[] = [
         { role: 'system', content: systemPrompt },

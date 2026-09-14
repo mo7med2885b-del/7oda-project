@@ -12,6 +12,7 @@ export interface Patient {
   medical_alerts: string;
   allergies: string;
   emergency_contact: string;
+  branch_id?: string;
   created_at: string;
 }
 

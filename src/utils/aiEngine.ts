@@ -1,4 +1,4 @@
-import { Patient, MedicalRecord, Invoice, Expense, AiClinicalBrief, AiFinancialInsight, AiTriageResult, Appointment } from '../types';
+import { Patient, MedicalRecord, Invoice, Expense, AiClinicalBrief, AiFinancialInsight, AiTriageResult, Appointment, Drug } from '../types';
 
 export const FEATHERLESS_API_KEY = 'rc_82db308113ff60fff867f4c1090e5e6ea66eefa9bfe1262cfc17d82b42d6211e';
 
@@ -42,36 +42,62 @@ export async function callFeatherlessAi(
 }
 
 /**
- * Live System Prompt Builder with Full Appointments & Date Ingestion
+ * Live System Prompt Builder — grounds the assistant in the clinic's actual
+ * data (today's appointments, patient roster, and drug inventory) so it
+ * never has to guess or fall back to invented numbers.
  */
 export function buildClinicSystemPrompt(
   appointments: Appointment[] = [],
-  currentDateStr: string = '2026-08-31'
+  currentDateStr: string = new Date().toISOString().split('T')[0],
+  patients: Patient[] = [],
+  drugs: Drug[] = []
 ): string {
-  const todayFormatted = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const todayFormatted = new Date(currentDateStr).toLocaleDateString('ar-EG', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 
-  const appointmentsListText = appointments.length > 0
-    ? appointments.map((apt, index) => 
-        `${index + 1}. [الساعة: ${apt.time}] المريضة: ${apt.patient_name || apt.name || 'مريضة'} | الإجراء الطبي: ${apt.procedure_type || apt.reason || 'استشارة'} | الفرع: ${apt.branch || 'الفرع الرئيسي'} | الهاتف: ${apt.phone || 'غير مسجل'} | الحالة: ${apt.status || 'مجدول'}`
-      ).join('\n')
-    : `1. 09:00 AM | سارة محمود السيد | بروتوكول الحقن المجهري (ICSI) | القاهرة (التجمع الخامس) | 01012345678
-2. 10:00 AM | منى عبد العزيز الجمل | متابعة تبويض بالسونار المهبلي | المنصورة | 01123456789
-3. 11:00 AM | دعاء رجب خليل | منظار رحمي تشخيصي وسحب بويضات | دمياط | 01234567890
-4. 01:00 PM | رانيا يوسف سليمان | متابعة حمل توأمي بالسونار الرباعي | بورسعيد | 01098765432
-5. 03:00 PM | هدى إسماعيل حسن | فحص عقم وأشعة بالصبغة | القاهرة (التجمع الخامس) | 01055566778`;
+  const todayAppointments = appointments.filter(a => a.appointment_date === currentDateStr);
+
+  const appointmentsListText =
+    todayAppointments.length > 0
+      ? todayAppointments
+          .slice()
+          .sort((a, b) => a.start_time.localeCompare(b.start_time))
+          .map(
+            (apt, index) =>
+              `${index + 1}. [${apt.start_time}-${apt.end_time}] المريضة: ${apt.patient_name} | النوع: ${apt.type || 'غير محدد'} | السبب: ${apt.reason || 'غير مسجل'} | الحالة: ${apt.status}`
+          )
+          .join('\n')
+      : 'لا توجد مواعيد مسجلة اليوم.';
+
+  const drugsListText =
+    drugs.length > 0
+      ? drugs
+          .map(d => `- ${d.name}${d.name_ar ? ` (${d.name_ar})` : ''}: الكمية المتاحة ${d.stock_qty}, السعر ${d.unit_price} ج.م`)
+          .join('\n')
+      : 'لا توجد بيانات مخزون أدوية متاحة حالياً.';
 
   return `أنت "المساعد الطبي الذكي" والخاص بالدكتور محمد حسني علي (استشاري النساء والتوليد وعلاج العقم والحقن المجهري).
 تاريخ اليوم الحالي: ${currentDateStr} (${todayFormatted}).
 
-لديك صلاحية كاملة ومباشرة لقراءة جدول كشوفات ومواعيد العيادة اليوم لجميع الفروع (القاهرة، المنصورة، دمياط، بورسعيد):
+لديك صلاحية مباشرة على البيانات الفعلية التالية فقط — لا تخترع بيانات غير موجودة هنا:
 
-قائمة مواعيد اليوم الكليّة والحيّة (${currentDateStr}):
+عدد المرضى المسجلين بالنظام: ${patients.length}
+
+مواعيد اليوم (${currentDateStr}):
 ${appointmentsListText}
 
-تعليمات هامة جداً:
-1. أنت متصل مباشرة بنظام تقويم ومواعيد العيادة الحي.
-2. عندما يسألك الدكتور عن "مواعيد النهاردة" أو "جدول الكشوفات" أو "مين المريضة الجاية"، أجبه فوراً بجدول المواعيد المذكور أعلاه مرتباً حسب الوقت بالتفصيل والوضوح وبأسلوب طبي راقٍ وبسيط باللغة العربية.
-3. إياك مطلقاً أن تقول أنك غير مرتبط بالتقويم أو لا تملك البيانات! أنت تملك بيانات المواعيد كاملة كما تم تغذيتها أعلاه.`;
+مخزون الصيدلية الحالي:
+${drugsListText}
+
+تعليمات هامة:
+1. أجب فقط بناءً على البيانات المذكورة أعلاه.
+2. إذا سُئلت عن كمية أو سعر دواء غير موجود في القائمة أعلاه، أو عن أي بيانات خارج ما ذُكر، أخبر المستخدم بوضوح أن هذه المعلومة غير متوفرة لديك بدلاً من التخمين.
+3. عند السؤال عن "مواعيد النهاردة" أو "مين المريضة الجاية"، استخدم قائمة مواعيد اليوم أعلاه بالضبط.
+4. عند السؤال عن كمية أو سعر دواء، استخدم قائمة المخزون أعلاه بالضبط.`;
 }
 
 /**
