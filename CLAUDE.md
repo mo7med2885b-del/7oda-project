@@ -3,11 +3,19 @@
 ## 🚫 Strict Agent Rules
 - **NEVER open the browser autonomously.** Only launch a browser session when the USER explicitly instructs it.
 - Always ask the user before using any browser automation tool.
+- **Always be super short and concise in replies.** No filler, no restating the request — answer directly.
 
 ## 📋 Project Summary
 **Project**: Dr. Mohamed Hosny Ali Clinical Operations & Public Patient Portal  
 **Domain**: Obstetrics, Gynecology, ICSI (Haqn Mejhary), IVF, Laparoscopy & Fetal Medicine  
 **Language**: Dual Arabic (primary RTL) & English (LTR)
+
+---
+
+## 🗄️ Database
+Live clinic data (patients, appointments, prescriptions, pharmacy/drug inventory, invoices, etc.) already exists in Supabase — don't seed/assume empty. Project: **`supabase-dr-hosny`**.
+- **Project URL**: `https://pbglapstohmdusgxjvxm.supabase.co`
+- Use the `supabase-dr-hosny` MCP connection (not any other Supabase project) when looking up or editing clinic data such as drug names, prescriptions, or patient records.
 
 ---
 
